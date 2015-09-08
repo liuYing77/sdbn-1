@@ -1,0 +1,56 @@
+\documentclass[11pt,twoside,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{url} % typeset URL's reasonably
+\usepackage{listings}
+
+\usepackage{pslatex} % Use Postscript fonts
+
+\usepackage{subcaption}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{makecell}
+
+\usepackage{mathptmx}
+\usepackage{amsmath}
+
+%define some own functions
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}} 
+\def\D{\mathrm{d}}
+
+
+\begin{document}
+
+\title{Training Spiking Restricted~Boltzmann~Machine by Minimising Contrastive~Divergence}
+\author{
+Qian~Liu
+\thanks{
+The author is with the School of Computer Science, University of Manchester, Manchester M13 9PL, U.K. 
+(e-mail:qian.liu-3@manchester.ac.uk}
+}
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+In order to implement training of Spiking Deep~Belief~Networks~(SDBNs) on SpiNNaker, this paper studies the layer-by-layer training of spiking Restricted~Boltzmann~Machine~(RBM) of a DBN.
+The study starts from understanding the original problem, Products of Experts~(PoE), which was solved by using Contrastive~Divergence~(CD).
+It involves utilising Markov~Chain~Monte~Carlo~(MCMC) sampling to present the distribution of a certain untraceable high-dimensional probability model function, e.g. PoE.
+Among these sampling algorithms, Gibbs method is introduced and used in PoE problem.
+Instead of minimising the original objective function of Kullback-Leibler divergence, the contrastive divergence is exploited to solve PoE.
+Then the study continues on applying CD to RBM.
+Finally, on-line learning methods only spiking neurons used are explored to train spiking RBM.
+
+\end{abstract}
+\section{Why CD?\cite{hinton2002training,woodfordnotes}}
+\subsection{PoE Problem}
+\subsection{MCMC Sampling}
+\subsection{CD Instead of KL}
+\section{RBM\cite{zhang2013rbm}}
+\subsection{Objective Function}
+\subsection{CD with 1-step Reconstruction}
+\section{Spiking RBM\cite{neftci2013event}}
+
+\bibliography{ref} 
+\bibliographystyle{ieeetr}
+\end{document}
