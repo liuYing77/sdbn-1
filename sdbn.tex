@@ -43,6 +43,31 @@ Finally, on-line learning methods only spiking neurons used are explored to trai
 
 \end{abstract}
 \section{Why CD?\cite{hinton2002training,woodfordnotes}}
+The probability of a data point, $ \mathbf{x} $,  is modelled by the function $f(\mathbf{x} \mid \mathbf{\theta} )$, given the model parameters $ \mathbf{\theta} $. 
+Thus, given a set of data points $ \mathbf{X} $, the probability of each data point,  $ \mathbf{x} $, is normalised by a partition function $Z( \mathbf{\theta})$ :
+\begin{equation}
+p(\mathbf{x} \mid \mathbf{\theta} ) = \dfrac{f(\mathbf{x} \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}
+\end{equation}
+where the partition function is defined as:
+\begin{equation}
+Z( \mathbf{\theta}) = \int f(\mathbf{x} \mid \mathbf{\theta} )\D\mathbf{x}
+\end{equation}
+when  $ \mathbf{X} $ is continuous, or
+\begin{equation}
+Z( \mathbf{\theta}) = \sum_\mathbf{X} f(\mathbf{x} \mid \mathbf{\theta} )
+\end{equation}
+when  $ \mathbf{X} $ is discrete.
+
+The purpose of learning is to tune the model parameter $ \mathbf{\theta} $ to fit the data $ \mathbf{X}  $. 
+The objective function is to maximise the probability product:
+ \begin{equation}
+ p(\mathbf{X} \mid \mathbf{\theta} ) = \prod_\mathbf{X} p(\mathbf{x} \mid \mathbf{\theta} ) =  \prod_\mathbf{X}\dfrac{f(\mathbf{x} \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}.
+ \end{equation}
+ This equals to maximise the log of the probability product, also known as the negative energy function:
+  \begin{equation}
+  \log p(\mathbf{X} \mid \mathbf{\theta} ) = -E(\mathbf{X} \mid \mathbf{\theta} )  =  \sum_\mathbf{X}[\log f(\mathbf{x} \mid \mathbf{\theta} ) - \log Z( \mathbf{\theta})] 
+%  = K(<\log f(\mathbf{x} \mid \mathbf{\theta} )>_{data} - \log Z( \mathbf{\theta}))
+  \end{equation}
 \subsection{PoE Problem}
 \subsection{MCMC Sampling}
 \subsection{CD Instead of KL}
