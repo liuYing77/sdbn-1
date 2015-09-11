@@ -50,24 +50,27 @@ p(\mathbf{x} \mid \mathbf{\theta} ) = \dfrac{f(\mathbf{x} \mid \mathbf{\theta} )
 \end{equation}
 where the partition function is defined as:
 \begin{equation}
-Z( \mathbf{\theta}) = \int f(\mathbf{x} \mid \mathbf{\theta} )\D\mathbf{x}
+Z( \mathbf{\theta}) = \int f(\mathbf{x} \mid \mathbf{\theta} )\D\mathbf{x}, \text{when  $ \mathbf{X} $ is continuous, or}
 \end{equation}
-when  $ \mathbf{X} $ is continuous, or
-\begin{equation}
-Z( \mathbf{\theta}) = \sum_\mathbf{X} f(\mathbf{x} \mid \mathbf{\theta} )
-\end{equation}
-when  $ \mathbf{X} $ is discrete.
 
+\begin{equation}
+Z( \mathbf{\theta}) = \sum_\mathbf{X} f(\mathbf{x} \mid \mathbf{\theta} ), \text{when  $ \mathbf{X} $ is discrete.}
+\end{equation}
 The purpose of learning is to tune the model parameter $ \mathbf{\theta} $ to fit the data $ \mathbf{X}  $. 
 The objective function is to maximise the probability product:
- \begin{equation}
+\begin{equation}
  p(\mathbf{X} \mid \mathbf{\theta} ) = \prod_\mathbf{X} p(\mathbf{x} \mid \mathbf{\theta} ) =  \prod_\mathbf{X}\dfrac{f(\mathbf{x} \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}.
- \end{equation}
+\end{equation}
  This equals to maximise the log of the probability product, also known as the negative energy function:
-  \begin{equation}
+\begin{equation}
   \log p(\mathbf{X} \mid \mathbf{\theta} ) = -E(\mathbf{X} \mid \mathbf{\theta} )  =  \sum_\mathbf{X}[\log f(\mathbf{x} \mid \mathbf{\theta} ) - \log Z( \mathbf{\theta})] 
 %  = K(<\log f(\mathbf{x} \mid \mathbf{\theta} )>_{data} - \log Z( \mathbf{\theta}))
-  \end{equation}
+\end{equation}
+
+Imagine three different conditions (probability function).
+First, $f(\mathbf{x} \mid \mathbf{\theta} )$ is the probability density function (pdf) of a normal distribution $\mathcal{N}(x \mid \mu, \sigma )$.
+Data vector $ \mathbf{x} $ is just a one dimensional data point, $x$.
+$ Z( \mathbf{\theta}) $ equals to 1, thus $p(x \mid \mathbf{\theta} ) = \mathcal{N}(x \mid \mu, \sigma )$.
 \subsection{PoE Problem}
 \subsection{MCMC Sampling}
 \subsection{CD Instead of KL}
