@@ -71,6 +71,12 @@ Imagine three different conditions (probability function).
 First, $f(\mathbf{x} \mid \mathbf{\theta} )$ is the probability density function (pdf) of a normal distribution $\mathcal{N}(x \mid \mu, \sigma )$.
 Data vector $ \mathbf{x} $ is just a one dimensional data point, $x$.
 $ Z( \mathbf{\theta}) $ equals to 1, thus $p(x \mid \mathbf{\theta} ) = \mathcal{N}(x \mid \mu, \sigma )$.
+\begin{equation}
+\begin{split}
+  &\log p(X \mid \theta ) =  \sum_X \log [\frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(x-\mu)^{2}}{2\sigma^{2}})] \\
+  &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \mu}= \sum_X -\frac{1}{2\sigma^{2}}\dfrac{\partial (\mu-x)^{2}}{\partial \mu} = \sum_X -\frac{1}{\sigma^{2}}(\mu-x)\\
+\end{split}
+\end{equation}
 \subsection{PoE Problem}
 \subsection{MCMC Sampling}
 \subsection{CD Instead of KL}
