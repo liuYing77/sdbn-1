@@ -67,16 +67,33 @@ The objective function is to maximise the probability product:
 %  = K(<\log f(\mathbf{x} \mid \mathbf{\theta} )>_{data} - \log Z( \mathbf{\theta}))
 \end{equation}
 
-Imagine three different conditions (probability function).
-First, $f(\mathbf{x} \mid \mathbf{\theta} )$ is the probability density function (pdf) of a normal distribution $\mathcal{N}(x \mid \mu, \sigma )$.
+Imagine three different conditions (probability function) as following.
+
+\textbf{First}, $f(\mathbf{x} \mid \mathbf{\theta} )$ is the probability density function (pdf) of a normal distribution $\mathcal{N}(x \mid \mu, \sigma )$.
 Data vector $ \mathbf{x} $ is just a one dimensional data point, $x$.
 $ Z( \mathbf{\theta}) $ equals to 1, thus $p(x \mid \mathbf{\theta} ) = \mathcal{N}(x \mid \mu, \sigma )$.
 \begin{equation}
-\begin{split}
-  &\log p(X \mid \theta ) =  \sum_X \log [\frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(x-\mu)^{2}}{2\sigma^{2}})] \\
-  &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \mu}= \sum_X -\frac{1}{2\sigma^{2}}\dfrac{\partial (\mu-x)^{2}}{\partial \mu} = \sum_X -\frac{1}{\sigma^{2}}(\mu-x)\\
-\end{split}
+\log p(X \mid \theta ) =  \sum_X \log [\frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(x-\mu)^{2}}{2\sigma^{2}})]
+\label{pdf}
 \end{equation}
+To maximise Equation~\ref{pdf} is to find the Maximum Likelihood Estimation (MLE) of parameters $ \mu $ and $ \sigma $, by deriving from the partial differential equations when they are equal to 0. 
+\begin{equation}
+\left\{
+\begin{aligned}
+   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \mu}= \sum_X -\frac{1}{2\sigma^{2}}\dfrac{\partial (\mu-x)^{2}}{\partial \mu} = \sum_X -\frac{1}{\sigma^{2}}(\mu-x) = 0 \quad\\
+   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \sigma^{2}}= -\frac{n}{2\sigma^{2}}+\frac{1}{2\sigma^{4}}\sum_X x^{2} -\frac{\mu}{\sigma^{4}}\sum_X x + \frac{n\mu^{2}}{2\sigma^{4}} = 0 \quad\\
+\end{aligned}
+\right.
+\end{equation}
+\begin{equation}
+\left\{
+\begin{aligned}
+    &\mu= \frac{1}{n}\sum_X x  \quad\\
+    &\sigma^{2} = \frac{1}{n}\sum_X x^{2} - (\frac{1}{n}\sum_X x)^{2}
+\end{aligned}
+\right.
+\end{equation}
+
 \subsection{PoE Problem}
 \subsection{MCMC Sampling}
 \subsection{CD Instead of KL}
