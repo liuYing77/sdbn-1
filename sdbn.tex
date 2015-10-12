@@ -44,7 +44,7 @@ Finally, on-line learning methods only spiking neurons used are explored to trai
 \end{abstract}
 \section{Why CD?\cite{hinton2002training,woodfordnotes}}
 The probability of a data point, $ \mathbf{x} $,  is modelled by the function $f(\mathbf{x} \mid \mathbf{\theta} )$, given the model parameters $ \mathbf{\theta} $. 
-Thus, given a set of data points $ \mathbf{X} $, the probability of each data point,  $ \mathbf{x} $, is normalised by a partition function $Z( \mathbf{\theta})$ :
+Thus, given a set of data points $ \mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, ..., \mathbf{x}_k, \mathbf{x}_{k+1}, ..., \mathbf{x}_K\} $, the probability of each data point,  $ \mathbf{x} $, is normalised by a partition function $Z( \mathbf{\theta})$ :
 \begin{equation}
 p(\mathbf{x} \mid \mathbf{\theta} ) = \dfrac{f(\mathbf{x} \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}
 \end{equation}
@@ -54,16 +54,16 @@ Z( \mathbf{\theta}) = \int f(\mathbf{x} \mid \mathbf{\theta} )\D\mathbf{x}, \tex
 \end{equation}
 
 \begin{equation}
-Z( \mathbf{\theta}) = \sum_\mathbf{X} f(\mathbf{x} \mid \mathbf{\theta} ), \text{when  $ \mathbf{X} $ is discrete.}
+Z( \mathbf{\theta}) = \sum_{k=1}^K f(\mathbf{x}_k \mid \mathbf{\theta} ), \text{when  $ \mathbf{X} $ is discrete.}
 \end{equation}
 The purpose of learning is to tune the model parameter $ \mathbf{\theta} $ to fit the data $ \mathbf{X}  $. 
 The objective function is to maximise the probability product:
 \begin{equation}
- p(\mathbf{X} \mid \mathbf{\theta} ) = \prod_\mathbf{X} p(\mathbf{x} \mid \mathbf{\theta} ) =  \prod_\mathbf{X}\dfrac{f(\mathbf{x} \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}.
+ p(\mathbf{X} \mid \mathbf{\theta} ) = \prod_{k=1}^K p(\mathbf{x}_k \mid \mathbf{\theta} ) =  \prod_{k=1}^K\dfrac{f(\mathbf{x}_k \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}.
 \end{equation}
  This equals to maximise the log of the probability product, also known as the negative energy function:
 \begin{equation}
-  \log p(\mathbf{X} \mid \mathbf{\theta} ) = -E(\mathbf{X} \mid \mathbf{\theta} )  =  \sum_\mathbf{X}[\log f(\mathbf{x} \mid \mathbf{\theta} ) - \log Z( \mathbf{\theta})] 
+  \log p(\mathbf{X} \mid \mathbf{\theta} ) = -E(\mathbf{X} \mid \mathbf{\theta} )  =  \sum_{k=1}^K[\log f(\mathbf{x}_k \mid \mathbf{\theta} ) - \log Z( \mathbf{\theta})] 
 %  = K(<\log f(\mathbf{x} \mid \mathbf{\theta} )>_{data} - \log Z( \mathbf{\theta}))
 \end{equation}
 
@@ -73,27 +73,32 @@ Imagine three different conditions (probability function) as following.
 Data vector $ \mathbf{x} $ is just a one dimensional data point, $x$.
 $ Z( \mathbf{\theta}) $ equals to 1, thus $p(x \mid \mathbf{\theta} ) = \mathcal{N}(x \mid \mu, \sigma )$.
 \begin{equation}
-\log p(X \mid \theta ) =  \sum_X \log [\frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(x-\mu)^{2}}{2\sigma^{2}})]
+\log p(X \mid \theta ) =  \sum_{k=1}^K \log [\frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(x_k-\mu)^{2}}{2\sigma^{2}})]
 \label{pdf}
 \end{equation}
 To maximise Equation~\ref{pdf} is to find the Maximum Likelihood Estimation (MLE) of parameters $ \mu $ and $ \sigma $, by deriving from the partial differential equations when they are equal to 0. 
 \begin{equation}
 \left\{
 \begin{aligned}
-   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \mu}= \sum_X -\frac{1}{2\sigma^{2}}\dfrac{\partial (\mu-x)^{2}}{\partial \mu} = \sum_X -\frac{1}{\sigma^{2}}(\mu-x) = 0 \quad\\
-   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \sigma^{2}}= -\frac{n}{2\sigma^{2}}+\frac{1}{2\sigma^{4}}\sum_X x^{2} -\frac{\mu}{\sigma^{4}}\sum_X x + \frac{n\mu^{2}}{2\sigma^{4}} = 0 \quad\\
+   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \mu}= \sum_{k=1}^K -\frac{1}{2\sigma^{2}}\dfrac{\partial (\mu-x_k)^{2}}{\partial \mu} = \sum_{k=1}^K -\frac{1}{\sigma^{2}}(\mu-x_k) = 0 \quad\\
+   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \sigma^{2}}= -\frac{K}{2\sigma^{2}}+\frac{1}{2\sigma^{4}}\sum_{k=1}^K x_k^{2} -\frac{\mu}{\sigma^{4}}\sum_{k=1}^K x_k + \frac{K\mu^{2}}{2\sigma^{4}} = 0 \quad\\
 \end{aligned}
 \right.
 \end{equation}
 \begin{equation}
 \left\{
 \begin{aligned}
-    &\mu= \frac{1}{n}\sum_X x  \quad\\
-    &\sigma^{2} = \frac{1}{n}\sum_X x^{2} - (\frac{1}{n}\sum_X x)^{2}
+    &\mu= \frac{1}{K}\sum_{k=1}^K x_k  \quad\\
+    &\sigma^{2} = \frac{1}{K}\sum_{k=1}^K x_k^{2} - (\frac{1}{K}\sum_{k=1}^K x_k)^{2}
 \end{aligned}
 \right.
 \end{equation}
+$p(x\mid \mathbf{\theta} )$ here is the function of two dimensional parameters $\mu$ and $\theta$, and searching the highest point in the parameter space ``is equivalent to being in the field on a clear, sunny day,''~\cite{woodfordnotes} seeing the point straight away.
 
+\textbf{Second}, the probability model function changes to be the sum of N normal distributions: 
+\begin{equation}
+f(x \mid \mathbf{\theta} ) = \sum_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i )
+\end{equation}
 \subsection{PoE Problem}
 \subsection{MCMC Sampling}
 \subsection{CD Instead of KL}
