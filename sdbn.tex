@@ -22,84 +22,113 @@
 
 \begin{document}
 
-\title{Training Spiking Restricted~Boltzmann~Machine by Minimising Contrastive~Divergence}
-\author{
-Qian~Liu
-\thanks{
-The author is with the School of Computer Science, University of Manchester, Manchester M13 9PL, U.K. 
-(e-mail:qian.liu-3@manchester.ac.uk}
-}
-\maketitle
-\thispagestyle{empty}
+	\title{Training Spiking Restricted~Boltzmann~Machine by Minimising Contrastive~Divergence}
+	\author{
+	Qian~Liu
+	\thanks{
+	The author is with the School of Computer Science, University of Manchester, Manchester M13 9PL, U.K. 
+	(e-mail:qian.liu-3@manchester.ac.uk}
+	}
+	\maketitle
+	\thispagestyle{empty}
 
 \begin{abstract}
-In order to implement training of Spiking Deep~Belief~Networks~(SDBNs) on SpiNNaker, this paper studies the layer-by-layer training of spiking Restricted~Boltzmann~Machine~(RBM) of a DBN.
-The study starts from understanding the original problem, Products of Experts~(PoE), which was solved by using Contrastive~Divergence~(CD).
-It involves utilising Markov~Chain~Monte~Carlo~(MCMC) sampling to present the distribution of a certain untraceable high-dimensional probability model function, e.g. PoE.
-Among these sampling algorithms, Gibbs method is introduced and used in PoE problem.
-Instead of minimising the original objective function of Kullback-Leibler divergence, the contrastive divergence is exploited to solve PoE.
-Then the study continues on applying CD to RBM.
-Finally, on-line learning methods only spiking neurons used are explored to train spiking RBM.
-
+	In order to implement training of Spiking Deep~Belief~Networks~(SDBNs) on SpiNNaker, this paper studies the layer-by-layer training of spiking Restricted~Boltzmann~Machine~(RBM) of a DBN.
+	The study starts from understanding the original problem, Products of Experts~(PoE), which was solved by using Contrastive~Divergence~(CD).
+	It involves utilising Markov~Chain~Monte~Carlo~(MCMC) sampling to present the distribution of a certain untraceable high-dimensional probability model function, e.g. PoE.
+	Among these sampling algorithms, Gibbs method is introduced and used in PoE problem.
+	Instead of minimising the original objective function of Kullback-Leibler divergence, the contrastive divergence is exploited to solve PoE.
+	Then the study continues on applying CD to RBM.
+	Finally, on-line learning methods only spiking neurons used are explored to train spiking RBM.
 \end{abstract}
-\section{Why CD?\cite{hinton2002training,woodfordnotes}}
-The probability of a data point, $ \mathbf{x} $,  is modelled by the function $f(\mathbf{x} \mid \mathbf{\theta} )$, given the model parameters $ \mathbf{\theta} $. 
-Thus, given a set of data points $ \mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, ..., \mathbf{x}_k, \mathbf{x}_{k+1}, ..., \mathbf{x}_K\} $, the probability of each data point,  $ \mathbf{x} $, is normalised by a partition function $Z( \mathbf{\theta})$ :
-\begin{equation}
-p(\mathbf{x} \mid \mathbf{\theta} ) = \dfrac{f(\mathbf{x} \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}
-\end{equation}
-where the partition function is defined as:
-\begin{equation}
-Z( \mathbf{\theta}) = \int f(\mathbf{x} \mid \mathbf{\theta} )\D\mathbf{x}, \text{when  $ \mathbf{X} $ is continuous, or}
-\end{equation}
 
-\begin{equation}
-Z( \mathbf{\theta}) = \sum_{k=1}^K f(\mathbf{x}_k \mid \mathbf{\theta} ), \text{when  $ \mathbf{X} $ is discrete.}
-\end{equation}
-The purpose of learning is to tune the model parameter $ \mathbf{\theta} $ to fit the data $ \mathbf{X}  $. 
-The objective function is to maximise the probability product:
-\begin{equation}
- p(\mathbf{X} \mid \mathbf{\theta} ) = \prod_{k=1}^K p(\mathbf{x}_k \mid \mathbf{\theta} ) =  \prod_{k=1}^K\dfrac{f(\mathbf{x}_k \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}.
-\end{equation}
- This equals to maximise the log of the probability product, also known as the negative energy function:
-\begin{equation}
-  \log p(\mathbf{X} \mid \mathbf{\theta} ) = -E(\mathbf{X} \mid \mathbf{\theta} )  =  \sum_{k=1}^K[\log f(\mathbf{x}_k \mid \mathbf{\theta} ) - \log Z( \mathbf{\theta})] 
-%  = K(<\log f(\mathbf{x} \mid \mathbf{\theta} )>_{data} - \log Z( \mathbf{\theta}))
-\end{equation}
+\section{Why CD(Contrastive Divergence)?\cite{hinton2002training,woodfordnotes}}
+	The probability of a data point, $ \mathbf{x} $,  is modelled by the function $f(\mathbf{x} \mid \mathbf{\theta} )$, given the model parameters $ \mathbf{\theta} $. 
+	Thus, given a set of data points $ \mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, ..., \mathbf{x}_k, \mathbf{x}_{k+1}, ..., \mathbf{x}_K\} $, the probability of each data point,  $ \mathbf{x} $, is normalised by a partition function $Z( \mathbf{\theta})$ :
+	\begin{equation}
+	\label{equ:z_int}
+	p(\mathbf{x} \mid \mathbf{\theta} ) = \dfrac{f(\mathbf{x} \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}
+	\end{equation}
+	where the partition function is defined as:
+	\begin{equation}
+	\label{equ:z_dis}
+	Z( \mathbf{\theta}) = \int f(\mathbf{x} \mid \mathbf{\theta} )\D\mathbf{x}, \text{when  $ \mathbf{X} $ is continuous, or}
+	\end{equation}
+	
+	\begin{equation}
+	Z( \mathbf{\theta}) = \sum_{k=1}^K f(\mathbf{x}_k \mid \mathbf{\theta} ), \text{when  $ \mathbf{X} $ is discrete.}
+	\end{equation}
+	The purpose of learning is to tune the model parameter $ \mathbf{\theta} $ to fit the data $ \mathbf{X}  $. 
+	The objective function is to maximise the probability product:
+	\begin{equation}
+	 p(\mathbf{X} \mid \mathbf{\theta} ) = \prod_{k=1}^K p(\mathbf{x}_k \mid \mathbf{\theta} ) =  \prod_{k=1}^K\dfrac{f(\mathbf{x}_k \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}.
+	\end{equation}
+	 This equals to maximise the log of the probability product, also known as the negative energy function:
+	\begin{equation}
+	\label{equ:energy}
+	  \log p(\mathbf{X} \mid \mathbf{\theta} ) = -E(\mathbf{X} \mid \mathbf{\theta} )  =  \sum_{k=1}^K\log f(\mathbf{x}_k \mid \mathbf{\theta} ) - K\log Z( \mathbf{\theta})
+	%  = K(<\log f(\mathbf{x} \mid \mathbf{\theta} )>_{data} - \log Z( \mathbf{\theta}))
+	\end{equation}
+	
+	Imagine three different conditions (probability function) as following.
+	
+	\textbf{First}, $f(\mathbf{x} \mid \mathbf{\theta} )$ is the probability density function (pdf) of a normal distribution $\mathcal{N}(x \mid \mu, \sigma )$.
+	Data vector $ \mathbf{x} $ is just a one dimensional data point, $x$.
+	$ Z( \mathbf{\theta}) $ equals to 1, thus $p(x \mid \mathbf{\theta} ) = \mathcal{N}(x \mid \mu, \sigma )$.
+	\begin{equation}
+	\log p(X \mid \theta ) =  \sum_{k=1}^K \log [\frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(x_k-\mu)^{2}}{2\sigma^{2}})]
+	\label{pdf}
+	\end{equation}
+	To maximise Equation~\ref{pdf} (or to minimise the energy function) is to find the Maximum Likelihood Estimation (MLE) of parameters $ \mu $ and $ \sigma $, by deriving from the partial differential equations when they are equal to 0. 
+	\begin{equation}
+	\left\{
+	\begin{aligned}
+	   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \mu}= \sum_{k=1}^K -\frac{1}{2\sigma^{2}}\dfrac{\partial (\mu-x_k)^{2}}{\partial \mu} = \sum_{k=1}^K -\frac{1}{\sigma^{2}}(\mu-x_k) = 0 \quad\\
+	   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \sigma^{2}}= -\frac{K}{2\sigma^{2}}+\frac{1}{2\sigma^{4}}\sum_{k=1}^K x_k^{2} -\frac{\mu}{\sigma^{4}}\sum_{k=1}^K x_k + \frac{K\mu^{2}}{2\sigma^{4}} = 0 \quad\\
+	\end{aligned}
+	\right.
+	\end{equation}
+	\begin{equation}
+	\left\{
+	\begin{aligned}
+	    &\mu= \frac{1}{K}\sum_{k=1}^K x_k  \quad\\
+	    &\sigma^{2} = \frac{1}{K}\sum_{k=1}^K x_k^{2} - (\frac{1}{K}\sum_{k=1}^K x_k)^{2}
+	\end{aligned}
+	\right.
+	\end{equation}
+	$p(x\mid \mathbf{\theta} )$ here is the function of two dimensional parameters $\mu$ and $\theta$, and searching the highest point in the parameter space ``is equivalent to being in the field on a clear, sunny day,''~\cite{woodfordnotes} seeing the point straight away.
+	
+	\textbf{Second}, the probability model function changes to be the sum of N normal distributions: 
+	\begin{equation}
+	f(x \mid \mathbf{\theta} ) = \sum_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i ).
+	\end{equation}
+	Derived from Equation~\ref{equ:energy}, the objective function is:
+	\begin{equation}
+	\log p(X \mid \mathbf{\theta} ) = \sum_{k=1}^K \log \sum_{i=1}^N \mathcal{N}(x_k \mid \mu_i, \sigma_i ) - \log N,
+	\end{equation}
+	where $\log Z( \mathbf{\theta})]$ still equals a constant, $ N $, but the partial differential equation of any parameter depends on other model parameters.
+	It is very hard to solve log of sum equations, thus iteration methods are introduced, e.g., gradient descent method. %and expectation maximization (EM) algorithm
+	Searching for a local minimum of the energy function in the parameter space, it starts with an initial point, either random or well selected.
+	For each iteration, the partial derivatives for every dimension of the parameter point are calculated as the gradient.
+	The gradient determines the decent direction of the space searching, the next parameter point is one step $ \eta $  towards the direction or is the lowest point found by line search.
+	
+	The gradient descent method is equivalent to ``being in the field at night with a torch.''~\cite{woodfordnotes}.
+	And then the descent direction is estimated and chosen by using the torch to see the relative heights of the field a short distance in each direction.
+	The search will follow the direction by walking one step or a certain distance (e.g. line search lowest point), and then start a new iteration.
+	
 
-Imagine three different conditions (probability function) as following.
-
-\textbf{First}, $f(\mathbf{x} \mid \mathbf{\theta} )$ is the probability density function (pdf) of a normal distribution $\mathcal{N}(x \mid \mu, \sigma )$.
-Data vector $ \mathbf{x} $ is just a one dimensional data point, $x$.
-$ Z( \mathbf{\theta}) $ equals to 1, thus $p(x \mid \mathbf{\theta} ) = \mathcal{N}(x \mid \mu, \sigma )$.
-\begin{equation}
-\log p(X \mid \theta ) =  \sum_{k=1}^K \log [\frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(x_k-\mu)^{2}}{2\sigma^{2}})]
-\label{pdf}
-\end{equation}
-To maximise Equation~\ref{pdf} is to find the Maximum Likelihood Estimation (MLE) of parameters $ \mu $ and $ \sigma $, by deriving from the partial differential equations when they are equal to 0. 
-\begin{equation}
-\left\{
-\begin{aligned}
-   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \mu}= \sum_{k=1}^K -\frac{1}{2\sigma^{2}}\dfrac{\partial (\mu-x_k)^{2}}{\partial \mu} = \sum_{k=1}^K -\frac{1}{\sigma^{2}}(\mu-x_k) = 0 \quad\\
-   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \sigma^{2}}= -\frac{K}{2\sigma^{2}}+\frac{1}{2\sigma^{4}}\sum_{k=1}^K x_k^{2} -\frac{\mu}{\sigma^{4}}\sum_{k=1}^K x_k + \frac{K\mu^{2}}{2\sigma^{4}} = 0 \quad\\
-\end{aligned}
-\right.
-\end{equation}
-\begin{equation}
-\left\{
-\begin{aligned}
-    &\mu= \frac{1}{K}\sum_{k=1}^K x_k  \quad\\
-    &\sigma^{2} = \frac{1}{K}\sum_{k=1}^K x_k^{2} - (\frac{1}{K}\sum_{k=1}^K x_k)^{2}
-\end{aligned}
-\right.
-\end{equation}
-$p(x\mid \mathbf{\theta} )$ here is the function of two dimensional parameters $\mu$ and $\theta$, and searching the highest point in the parameter space ``is equivalent to being in the field on a clear, sunny day,''~\cite{woodfordnotes} seeing the point straight away.
-
-\textbf{Second}, the probability model function changes to be the sum of N normal distributions: 
-\begin{equation}
-f(x \mid \mathbf{\theta} ) = \sum_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i )
-\end{equation}
 \subsection{PoE Problem}
+	\textbf{Finally}, the probability model function becomes the product of N normal distributions: 
+	\begin{equation}
+	f(x \mid \mathbf{\theta} ) = \prod_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i ),
+	\end{equation}
+	where the partition (normalisation) function $Z( \mathbf{\theta})$ is no longer a constant, but varies accordance to all the parameters.
+	Essentially, the integration of the probability model, see Equation~\ref{equ:z_int} and~\ref{equ:z_dis}, is usually algebraically intractable.
+	We have to use numerical integration method to evaluate the Equation~\ref{equ:energy} by sampling from the probability model.
+	Although in this example the integration of product of normal distribution is still tractable, it is also helpful to use numerical integration.
+	
+	The motivation behind using Contrastive Divergence algorithm is to boost the training speed of a Markov Chain in order to represent the distribution of a PoE (Product of Expert) model.
+	Thus the sampling can be followed using this trained Markov Chain. 
 \subsection{MCMC Sampling}
 \subsection{CD Instead of KL}
 \section{RBM\cite{zhang2013rbm}}
