@@ -180,13 +180,13 @@
 	  \begin{algorithmic}
 	  	
 %	    \Procedure{Correction}{coeffs $C$, correlations $Q$}
-	    \State Initialization $x_0 = s_{random}$, ($ x_t $:sampling sequence and $s_{k}$:state in MC )
-	    \For{$t=0, 1, 2, ..., N$}
-		    \State $y \sim P_{x_{t-1}}$ 
-			    \Comment{Random drawing the next state by the transformation probability $P_{x_{t-1}}$}
+	    \State Initialisation $x_0 = s_{random}$, \Comment{$ x $:sampling sequence and $s$:state in MC}
+	    \For{$t=1, 2, ..., N$}
+		    \State $y \sim p_(x|x_{t-1})$ 
+			    \Comment{Random drawing the next state by the transformation probability matrix $P$}
 		    \State $ u \sim Uniform[0,1] $ 
 			    \Comment{Random drawing from a uniform distribution}
-			\If {$ u < \alpha^{'}(i,j) = min \left\{\frac{q(j)P_{ji}}{q(i)P_{ij}},1\right\} $}
+			\If {$ u < \alpha^{'}(x_{t-1},y) = min \left\{\frac{q(y)p_(x_{t-1}|y)}{q(x_{t-1})p_(y|x_{t-1})},1\right\} $}
 				\State {$x_t = y$} \Comment{Accept the transformation when the random number is less than $\alpha$}
 				\Else \State {$x_t = x_{t-1}$}  \Comment{Transformation is refused elsewise}
 			\EndIf
@@ -194,6 +194,47 @@
 	  \end{algorithmic}
 	\end{algorithm}
 \subsection{Gibbs Sampling}
+	For high dimensional data sampling, it is possible to make the accept rate to 1 which increases the convergence speed dramatically.
+	According to conditional probability:
+	\begin{equation}
+		P(A|B) = \frac{P(A \cap B)}{P(B)}.
+	\end{equation}
+	For a $ n $ dimensional data $ (\mathbf{x}, y) $ where $ \mathbf{x}=(x_1,x_2,...,x_{n-1}) $, the joint probability of $p(\mathbf{x},y)$ is:
+	\begin{equation}
+		p(\mathbf{x},y) = p(y|\mathbf{x})p(\mathbf{x}).
+	\end{equation}
+	Thus, during sampling if we restrict the direction of transformation to one single axis(dimension), $ y $, from point $ A(\mathbf{x}_1, y_1) $ to point $ B(\mathbf{x}_1, y_2)$:
+	\begin{equation}
+		p(\mathbf{x}_1, y_1)p(y_2|\mathbf{x}_1) = p(\mathbf{x}_1, y_2)p(y_1|\mathbf{x}_1) = p(\mathbf{x}_1)p(y_1|\mathbf{x}_1)p(y_2|\mathbf{x}_1),
+	\end{equation}
+	then, the MC obeys the condition of detailed balance.
+	So the stationary distribution $ \pi(x_1,x_2,...,x_n) $ equals to the joint probability $ p(x_1,x_2,...,x_n) $ and the transformation probability matrix P is consisted of the conditional probability of each dimension $ k $ $,  p(x_k|x_1,...,x_{k-1},x_{k+1},...,x_n) $.
+	Therefore, given the conditional distribution of each variable for a multivariate distribution Gibbs sampling is able to approximate the joint distribution with long enough sample sequence.
+	Gibbs sampling is described as follows:
+	\begin{algorithm}[h]
+	  \caption{Gibbs Sampling}
+	  \label{alg:gibbs}
+	  \begin{algorithmic}
+	  	
+%	    \Procedure{Correction}{coeffs $C$, correlations $Q$}
+	    \State Initialisation $\mathbf{x}_0 = [x_0(1),x_0(2),...,x_0(M)]$,  \Comment{Random initialise $\mathbf{x}_0$}
+	    \For{$t=1, 2, ..., N$}
+	    	\For{$k=1, 2, ..., M$}
+	    		\State $ x_t(k) = p(x(k)|x_{t-1}(1),x_{t-1}(2),...,x_{t-1}(k-1),x_{t-1}(k+1),...,x_{t-1}(M))$\\
+	    		\Comment{Sampling by the conditional distribution}
+%		    \State $y \sim p_(x|x_{t-1})$ 
+%			    \Comment{Random drawing the next state by the transformation probability matrix $P$}
+%		    \State $ u \sim Uniform[0,1] $ 
+%			    \Comment{Random drawing from a uniform distribution}
+%			\If {$ u < \alpha^{'}(x_{t-1},y) = min \left\{\frac{q(y)p_(x_{t-1}|y)}{q(x_{t-1})p_(y|x_{t-1})},1\right\} $}
+%				\State {$x_t = y$} \Comment{Accept the transformation when the random number is less than $\alpha$}
+%				\Else \State {$x_t = x_{t-1}$}  \Comment{Transformation is refused elsewise}
+%			\EndIf
+			\EndFor
+		\EndFor
+	  \end{algorithmic}
+	\end{algorithm}
+	
 \subsection{CD Instead of KL}
 \section{RBM\cite{zhang2013rbm}}
 \subsection{Objective Function}
