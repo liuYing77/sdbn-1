@@ -247,12 +247,12 @@
 \subsection{CD Instead of KL(Kullback–Leibler)}
 	Kullback–Leibler divergence is the measure of how different two probability distributions are:
 	\begin{equation}
-	\begin{align}
+	\begin{aligned}
 	KL(p^0 \mid \mid p^{\infty})
 	&= \sum_x p^0(\mathbf{x}) \log \dfrac{p^0(\mathbf{x})}{p^{\infty}(\mathbf{x} \mid \Theta)} \\
 	&=  \sum_x p^0(\mathbf{x}) \log p^0(\mathbf{x}) - \left \langle p^{\infty}(\mathbf{x} \mid \Theta) \right \rangle_{p^0} \\
 	&= - H(p^0) + E(\mathbf{x} \mid \Theta),
-	\end{align}
+	\end{aligned}
 	\end{equation}
 	and $ - H(p^0)  $ is independent from parameter $ \Theta $ (is static with given data set $ \mathbf{X} $).
 	Thus the objective function is the same with Equation~\ref{equ:energy}.
@@ -278,8 +278,9 @@
 		\item RBM is high dimensional data $ (\mathbf{v}, \mathbf{h}) $, which is perfect for Gibbs sampling.
 		$ p(\mathbf{v}, \mathbf{h} \mid \Theta) $ can be approximated by the conditional distribution $ p(\mathbf{v} \mid \mathbf{h}, \Theta) $
 		\item RBM is a PoE problem, which follows Equation~\ref{equ:part}.
+		\textcolor{red}{$ f(\mathbf{v}, \mathbf{h} \mid \Theta) $ is a PoE problem, but is $ f(\mathbf{v} \mid \Theta) $ a PoE too?}
 		\begin{equation}
-			f(\mathbf{X} \mid \Theta) =\exp (E(\mathbf{v}, \mathbf{h} \mid \Theta)) = \exp (-\sum_{i=1}^n a_i v_i - \sum_{j=1}^m b_j h_j - \sum_{i=1}^n \sum_{j=m}^n v_i W_{ij} h_j).
+			f(\mathbf{v}, \mathbf{h} \mid \Theta) =\exp (E(\mathbf{v}, \mathbf{h} \mid \Theta)) = \exp (-\sum_{i=1}^n a_i v_i - \sum_{j=1}^m b_j h_j - \sum_{i=1}^n \sum_{j=m}^n v_i W_{ij} h_j).
 		\end{equation}
 	\end{itemize}
 \subsection{Objective Function}
