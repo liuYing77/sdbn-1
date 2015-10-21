@@ -45,38 +45,38 @@
 \end{abstract}
 
 \section{Why CD(Contrastive Divergence)?\cite{hinton2002training,woodfordnotes}}
-	The probability of a data point, $ \mathbf{x} $,  is modelled by the function $f(\mathbf{x} \mid \mathbf{\theta} )$, given the model parameters $ \mathbf{\theta} $. 
-	Thus, given a set of data points $ \mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, ..., \mathbf{x}_k, \mathbf{x}_{k+1}, ..., \mathbf{x}_K\} $, the probability of each data point,  $ \mathbf{x} $, is normalised by a partition function $Z( \mathbf{\theta})$ :
+	The probability of a data point, $ \mathbf{x} $,  is modelled by the function $f(\mathbf{x} \mid \Theta )$, given the model parameters $ \Theta $. 
+	Thus, given a set of data points $ \mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, ..., \mathbf{x}_k, \mathbf{x}_{k+1}, ..., \mathbf{x}_K\} $, the probability of each data point,  $ \mathbf{x} $, is normalised by a partition function $Z( \Theta)$ :
 	\begin{equation}
-	p(\mathbf{x} \mid \mathbf{\theta} ) = \dfrac{f(\mathbf{x} \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}
+	p(\mathbf{x} \mid \Theta ) = \dfrac{f(\mathbf{x} \mid \Theta )}{Z( \Theta)}
 	\end{equation}
 	where the partition function is defined as:
 	\begin{equation}
 	\label{equ:z_int}
-	Z( \mathbf{\theta}) = \int f(\mathbf{x} \mid \mathbf{\theta} )\D\mathbf{x}, \text{when  $ \mathbf{X} $ is continuous, or}
+	Z( \Theta) = \int f(\mathbf{x} \mid \Theta )\D\mathbf{x}, \text{when  $ \mathbf{X} $ is continuous, or}
 	\end{equation}
 	
 	\begin{equation}
 	\label{equ:z_dis}
-	Z( \mathbf{\theta}) = \sum_{k=1}^K f(\mathbf{x}_k \mid \mathbf{\theta} ), \text{when  $ \mathbf{X} $ is discrete.}
+	Z( \Theta) = \sum_{c=1}^{ \infty} f(\mathbf{x}_c \mid \Theta ), \text{when  $ \mathbf{X} $ is discrete.}
 	\end{equation}
-	The purpose of learning is to tune the model parameter $ \mathbf{\theta} $ to fit the data $ \mathbf{X}  $. 
+	The purpose of learning is to tune the model parameter $ \Theta $ to fit the data $ \mathbf{X}  $. 
 	The objective function is to maximise the probability product:
 	\begin{equation}
-	 p(\mathbf{X} \mid \mathbf{\theta} ) = \prod_{k=1}^K p(\mathbf{x}_k \mid \mathbf{\theta} ) =  \prod_{k=1}^K\dfrac{f(\mathbf{x}_k \mid \mathbf{\theta} )}{Z( \mathbf{\theta})}.
+	 p(\mathbf{X} \mid \Theta ) = \prod_{k=1}^K p(\mathbf{x}_k \mid \Theta ) =  \prod_{k=1}^K\dfrac{f(\mathbf{x}_k \mid \Theta )}{Z( \Theta)}= \frac{\frac{1}{K}\prod_{k=1}^Kf(\mathbf{x}_k \mid \Theta )}{Z( \Theta)}.
 	\end{equation}
 	 This equals to maximise the log of the probability product, also known as the negative energy function:
 	\begin{equation}
 	\label{equ:energy}
-	  \log p(\mathbf{X} \mid \mathbf{\theta} ) = -E(\mathbf{X} \mid \mathbf{\theta} )  =  \sum_{k=1}^K\log f(\mathbf{x}_k \mid \mathbf{\theta} ) - K\log Z( \mathbf{\theta})
-	%  = K(<\log f(\mathbf{x} \mid \mathbf{\theta} )>_{data} - \log Z( \mathbf{\theta}))
+	  \log p(\mathbf{X} \mid \Theta ) = -E(\mathbf{X} \mid \Theta )  =  \frac{1}{K}\sum_{k=1}^K\log f(\mathbf{x}_k \mid \Theta ) - \log Z( \Theta)
+	%  = K(<\log f(\mathbf{x} \mid \Theta )>_{data} - \log Z( \Theta))
 	\end{equation}
 	
 	Imagine three different conditions (probability function) as following.
 	
-	\textbf{First}, $f(\mathbf{x} \mid \mathbf{\theta} )$ is the probability density function (pdf) of a normal distribution $\mathcal{N}(x \mid \mu, \sigma )$.
+	\textbf{First}, $f(\mathbf{x} \mid \Theta )$ is the probability density function (pdf) of a normal distribution $\mathcal{N}(x \mid \mu, \sigma )$.
 	Data vector $ \mathbf{x} $ is just a one dimensional data point, $x$.
-	$ Z( \mathbf{\theta}) $ equals to 1, thus $p(x \mid \mathbf{\theta} ) = \mathcal{N}(x \mid \mu, \sigma )$.
+	$ Z( \Theta) $ equals to 1, thus $p(x \mid \Theta ) = \mathcal{N}(x \mid \mu, \sigma )$.
 	\begin{equation}
 	\log p(X \mid \theta ) =  \sum_{k=1}^K \log [\frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(x_k-\mu)^{2}}{2\sigma^{2}})]
 	\label{pdf}
@@ -98,17 +98,17 @@
 	\end{aligned}
 	\right.
 	\end{equation}
-	$p(x\mid \mathbf{\theta} )$ here is the function of two dimensional parameters $\mu$ and $\theta$, and searching the highest point in the parameter space ``is equivalent to being in the field on a clear, sunny day,''~\cite{woodfordnotes} seeing the point straight away.
+	$p(x\mid \Theta )$ here is the function of two dimensional parameters $\mu$ and $\theta$, and searching the highest point in the parameter space ``is equivalent to being in the field on a clear, sunny day,''~\cite{woodfordnotes} seeing the point straight away.
 	
 	\textbf{Second}, the probability model function changes to be the sum of N normal distributions: 
 	\begin{equation}
-	f(x \mid \mathbf{\theta} ) = \sum_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i ).
+	f(x \mid \Theta ) = \sum_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i ).
 	\end{equation}
 	Derived from Equation~\ref{equ:energy}, the objective function is:
 	\begin{equation}
-	\log p(X \mid \mathbf{\theta} ) = \sum_{k=1}^K \log \sum_{i=1}^N \mathcal{N}(x_k \mid \mu_i, \sigma_i ) - \log N,
+	\log p(X \mid \Theta ) = \frac{1}{K}\sum_{k=1}^K \log \sum_{i=1}^N \mathcal{N}(x_k \mid \mu_i, \sigma_i ) - \log N,
 	\end{equation}
-	where $\log Z( \mathbf{\theta})]$ still equals a constant, $ N $, but the partial differential equation of any parameter depends on other model parameters.
+	where $\log Z( \Theta)]$ still equals a constant, $ N $, but the partial differential equation of any parameter depends on other model parameters.
 	It is very hard to solve equation set of log of sum, thus iteration methods are introduced, e.g., gradient descent method. %and expectation maximization (EM) algorithm
 	Searching for a local minimum of the energy function in the parameter space, it starts with an initial point, either random or well selected.
 	For each iteration, the partial derivatives for every dimension of the parameter point are calculated as the gradient.
@@ -123,13 +123,28 @@
 \subsection{PoE Problem}
 	\textbf{Finally}, the probability model function becomes the product of N normal distributions: 
 	\begin{equation}
-	f(x \mid \mathbf{\theta} ) = \prod_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i ),
+	f(x \mid \Theta ) = \prod_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i ),
 	\end{equation}
-	where the partition (normalisation) function $Z( \mathbf{\theta})$ is no longer a constant, but varies accordance to all the parameters.
+	where the partition (normalisation) function $Z( \Theta)$ is no longer a constant, but varies accordance to all the parameters.
 	Essentially, the integration of the probability model, see Equation~\ref{equ:z_int} and~\ref{equ:z_dis}, is usually algebraically intractable.
-	We have to use numerical integration method to evaluate the Equation~\ref{equ:energy} by Monte Carlo Markov Chain (MCMC) sampling, see section~\ref{sec:mcmc}.
+	We have to use numerical integration method to evaluate the Equation~\ref{equ:energy}, whose partial derivative is:
+	\begin{equation}
+	\label{equ:part}
+	\begin{aligned}
+	\dfrac{\partial E(\mathbf{X} \mid \Theta)}{\partial \theta} 
+	& = \sum_{c=1}^{\infty} p(\mathbf{x}_c \mid \Theta) \dfrac{\partial \log f(\mathbf{x}_c \mid \Theta)}{\partial \theta} - \frac{1}{K}\sum_{k=1}^K \dfrac{\partial \log f(\mathbf{x}_k \mid \Theta)}{\partial \theta} \\
+	& = \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{p(\mathbf{x} \mid \Theta)} - 
+	\left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{X}} \\
+	&=\left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{X}^\infty} - \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{X}^0},
+	\end{aligned}
+	\end{equation}
+	where  $ <\cdot>_d $ denotes the mean expectation of $ \cdot $ given distribution of $d$.
+	The second term of the right-hand side is easy to get with the given data set $ \mathbf{X} $, and the first term can be approximated by generating samples according to $ p(\mathbf{x} \mid \Theta) $.
+	These samples is called ``fantasy data'' and can be generated using Monte Carlo Markov Chain (MCMC) sampling, see section~\ref{sec:mcmc}.
 	Although in this example the integration of product of normal distribution is still tractable, it is also helpful to use numerical integration.
-	
+
+	Go back to the metaphor of the parameter field, solving PoE problem is like searching the lowest point in a completely dark night without a torch.
+	The computation of Equation~\ref{equ:part} is to ``feel the gradient of the field under our feet''.~\cite{woodfordnotes}.
 	%The motivation underlining Contrastive Divergence algorithm is to boost the training speed of a Markov Chain in order to represent the distribution of a PoE (Product of Expert) model.
 	%Thus the sampling can be followed using this trained Markov Chain model. 
 \subsection{MCMC Sampling}
@@ -182,33 +197,35 @@
 %	    \Procedure{Correction}{coeffs $C$, correlations $Q$}
 	    \State Initialisation $x_0 = s_{random}$, \Comment{$ x $:sampling sequence and $s$:state in MC}
 	    \For{$t=1, 2, ..., N$}
-		    \State $y \sim p_(x|x_{t-1})$ 
+		    \State $y \sim p_(x \mid x_{t-1})$ 
 			    \Comment{Random drawing the next state by the transformation probability matrix $P$}
 		    \State $ u \sim Uniform[0,1] $ 
 			    \Comment{Random drawing from a uniform distribution}
-			\If {$ u < \alpha^{'}(x_{t-1},y) = min \left\{\frac{q(y)p_(x_{t-1}|y)}{q(x_{t-1})p_(y|x_{t-1})},1\right\} $}
+			\If {$ u < \alpha^{'}(x_{t-1},y) = min \left\{\frac{q(y)p_(x_{t-1} \mid y)}{q(x_{t-1})p_(y \mid x_{t-1})},1\right\} $}
 				\State {$x_t = y$} \Comment{Accept the transformation when the random number is less than $\alpha$}
 				\Else \State {$x_t = x_{t-1}$}  \Comment{Transformation is refused elsewise}
 			\EndIf
 		\EndFor
 	  \end{algorithmic}
 	\end{algorithm}
+	
+	The probability model function as the product of N normal distributions can be approximated by using this Metropolis-Hastings sampling.
 \subsection{Gibbs Sampling}
 	For high dimensional data sampling, it is possible to make the accept rate to 1 which increases the convergence speed dramatically.
 	According to conditional probability:
 	\begin{equation}
-		P(A|B) = \frac{P(A \cap B)}{P(B)}.
+		P(A \mid B) = \frac{P(A \cap B)}{P(B)}.
 	\end{equation}
 	For a $ n $ dimensional data $ (\mathbf{x}, y) $ where $ \mathbf{x}=(x_1,x_2,...,x_{n-1}) $, the joint probability of $p(\mathbf{x},y)$ is:
 	\begin{equation}
-		p(\mathbf{x},y) = p(y|\mathbf{x})p(\mathbf{x}).
+		p(\mathbf{x},y) = p(y \mid \mathbf{x})p(\mathbf{x}).
 	\end{equation}
 	Thus, during sampling if we restrict the direction of transformation to one single axis(dimension), $ y $, from point $ A(\mathbf{x}_1, y_1) $ to point $ B(\mathbf{x}_1, y_2)$:
 	\begin{equation}
-		p(\mathbf{x}_1, y_1)p(y_2|\mathbf{x}_1) = p(\mathbf{x}_1, y_2)p(y_1|\mathbf{x}_1) = p(\mathbf{x}_1)p(y_1|\mathbf{x}_1)p(y_2|\mathbf{x}_1),
+		p(\mathbf{x}_1, y_1)p(y_2 \mid \mathbf{x}_1) = p(\mathbf{x}_1, y_2)p(y_1 \mid \mathbf{x}_1) = p(\mathbf{x}_1)p(y_1 \mid \mathbf{x}_1)p(y_2 \mid \mathbf{x}_1),
 	\end{equation}
 	then, the MC obeys the condition of detailed balance.
-	So the stationary distribution $ \pi(x_1,x_2,...,x_n) $ equals to the joint probability $ p(x_1,x_2,...,x_n) $ and the transformation probability matrix P is consisted of the conditional probability of each dimension $ k $ $,  p(x_k|x_1,...,x_{k-1},x_{k+1},...,x_n) $.
+	So the stationary distribution $ \pi(x_1,x_2,...,x_n) $ equals to the joint probability $ p(x_1,x_2,...,x_n) $ and the transformation probability matrix P is consisted of the conditional probability of each dimension $ k $ $,  p(x_k \mid x_1,...,x_{k-1},x_{k+1},...,x_n) $.
 	Therefore, given the conditional distribution of each variable for a multivariate distribution Gibbs sampling is able to approximate the joint distribution with long enough sample sequence.
 	Gibbs sampling is described as follows:
 	\begin{algorithm}[h]
@@ -220,15 +237,51 @@
 	    \State Initialisation $\mathbf{x}_0 = [x_0(1),x_0(2),...,x_0(M)]$,  \Comment{Random initialise $\mathbf{x}_0$}
 	    \For{$t=1, 2, ..., N$}
 	    	\For{$k=1, 2, ..., M$}
-	    		\State $ x_t(k) = p(x(k)|x_{t-1}(1),x_{t-1}(2),...,x_{t-1}(k-1),x_{t-1}(k+1),...,x_{t-1}(M))$\\
+	    		\State $ x_t(k) = p(x(k) \mid x_{t-1}(1),x_{t-1}(2),...,x_{t-1}(k-1),x_{t-1}(k+1),...,x_{t-1}(M))$\\
 	    		\Comment{Sampling by the conditional distribution}
 			\EndFor
 		\EndFor
 	  \end{algorithmic}
 	\end{algorithm}
 	
-\subsection{CD Instead of KL}
+\subsection{CD Instead of KL(Kullback–Leibler)}
+	Kullback–Leibler divergence is the measure of how different two probability distributions are:
+	\begin{equation}
+	\begin{align}
+	KL(p^0 \mid \mid p^{\infty})
+	&= \sum_x p^0(\mathbf{x}) \log \dfrac{p^0(\mathbf{x})}{p^{\infty}(\mathbf{x} \mid \Theta)} \\
+	&=  \sum_x p^0(\mathbf{x}) \log p^0(\mathbf{x}) - \left \langle p^{\infty}(\mathbf{x} \mid \Theta) \right \rangle_{p^0} \\
+	&= - H(p^0) + E(\mathbf{x} \mid \Theta),
+	\end{align}
+	\end{equation}
+	and $ - H(p^0)  $ is independent from parameter $ \Theta $ (is static with given data set $ \mathbf{X} $).
+	Thus the objective function is the same with Equation~\ref{equ:energy}.
+	The partial derivative is the same with Equation~\ref{equ:part}:
+	\begin{equation}
+		\label{equ:kl}
+		\dfrac{\partial KL(p^0 \mid \mid p^{\infty})}{\partial \theta}
+		= \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^\infty} - \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^0}.
+	\end{equation}
+	Thus,
+	\begin{equation}
+		\dfrac{\partial [KL(p^0 \mid \mid p^{\infty}) - KL(p^1 \mid \mid p^{\infty})]}{\partial \theta}
+		= \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^1} - \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^0},
+	\end{equation}
+	where the second term in equation~\ref{equ:kl} cancels out.
+	So Hinton proposed \textcolor{red}{the new contrastive divergence CD to make Gibbs sampling with only 1 step}.
+	Contrastive divergence is defined as:
+	\begin{equation}
+		CD_n = KL(p^0 \mid \mid p^{\infty}) - KL(p^n \mid \mid p^{\infty})
+	\end{equation}
 \section{RBM\cite{zhang2013rbm}}
+	\begin{itemize}
+		\item RBM is high dimensional data $ (\mathbf{v}, \mathbf{h}) $, which is perfect for Gibbs sampling.
+		$ p(\mathbf{v}, \mathbf{h} \mid \Theta) $ can be approximated by the conditional distribution $ p(\mathbf{v} \mid \mathbf{h}, \Theta) $
+		\item RBM is a PoE problem, which follows Equation~\ref{equ:part}.
+		\begin{equation}
+			f(\mathbf{X} \mid \Theta) =\exp (E(\mathbf{v}, \mathbf{h} \mid \Theta)) = \exp (-\sum_{i=1}^n a_i v_i - \sum_{j=1}^m b_j h_j - \sum_{i=1}^n \sum_{j=m}^n v_i W_{ij} h_j).
+		\end{equation}
+	\end{itemize}
 \subsection{Objective Function}
 \subsection{CD with 1-step Reconstruction}
 \section{Spiking RBM\cite{neftci2013event}}
