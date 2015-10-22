@@ -17,6 +17,7 @@
 \usepackage{mathptmx}
 \usepackage{amsmath}
 
+\usepackage{appendix}
 %define some own functions
 \newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}} 
 \def\D{\mathrm{d}}
@@ -45,74 +46,78 @@
 \end{abstract}
 
 \section{Why CD(Contrastive Divergence)?\cite{hinton2002training,woodfordnotes}}
-	The probability of a data point, $ \mathbf{x} $,  is modelled by the function $f(\mathbf{x} \mid \Theta )$, given the model parameters $ \Theta $. 
-	Thus, given a set of data points $ \mathbf{X}=\{\mathbf{x}_1, \mathbf{x}_2, ..., \mathbf{x}_k, \mathbf{x}_{k+1}, ..., \mathbf{x}_K\} $, the probability of each data point,  $ \mathbf{x} $, is normalised by a partition function $Z( \Theta)$ :
+	The probability of a vector point $ \mathbf{x} $ is modelled by the function $f(\mathbf{x} \mid \Theta )$ given the model parameters $ \Theta $, and normalised by a partition function $Z( \Theta)$:
+	
 	\begin{equation}
 	p(\mathbf{x} \mid \Theta ) = \dfrac{f(\mathbf{x} \mid \Theta )}{Z( \Theta)}
 	\end{equation}
 	where the partition function is defined as:
 	\begin{equation}
 	\label{equ:z_int}
-	Z( \Theta) = \int f(\mathbf{x} \mid \Theta )\D\mathbf{x}, \text{when  $ \mathbf{X} $ is continuous, or}
+	Z( \Theta) = \int f(\mathbf{x} \mid \Theta )\D\mathbf{x}, \text{when  $ \mathbf{x} $ is continuous, or}
 	\end{equation}
 	
 	\begin{equation}
 	\label{equ:z_dis}
-	Z( \Theta) = \sum_{c=1}^{ \infty} f(\mathbf{x}_c \mid \Theta ), \text{when  $ \mathbf{X} $ is discrete.}
+	Z( \Theta) = \sum_{\mathbf{x}} f(\mathbf{x} \mid \Theta ), \text{when  $ \mathbf{x} $ is discrete.}
 	\end{equation}
-	The purpose of learning is to tune the model parameter $ \Theta $ to fit the data $ \mathbf{X}  $. 
-	The objective function is to maximise the probability product:
+	Given a set of data points $ \mathbf{D}=(\mathbf{d}_1, \mathbf{d}_2, ..., \mathbf{d}_K) $ the purpose of learning is to tune the model parameter $ \Theta $ to fit the data $ \mathbf{D}  $. 
+	The objective function is the probability product of all the independent data points of the data set, which is also called the likelihood function:
 	\begin{equation}
-	 p(\mathbf{X} \mid \Theta ) = \prod_{k=1}^K p(\mathbf{x}_k \mid \Theta ) =  \prod_{k=1}^K\dfrac{f(\mathbf{x}_k \mid \Theta )}{Z( \Theta)}= \frac{\frac{1}{K}\prod_{k=1}^Kf(\mathbf{x}_k \mid \Theta )}{Z( \Theta)}.
+	 L (\Theta \mid \mathbf{D}) = p(\mathbf{D} \mid \Theta ) = \prod_{k=1}^K p(\mathbf{d}_k \mid \Theta ) =  \prod_{k=1}^K\dfrac{f(\mathbf{d}_k \mid \Theta )}{Z( \Theta)}.
 	\end{equation}
-	 This equals to maximise the log of the probability product, also known as the negative energy function:
+	 And the target is to maximise the likelihood given the data set $ \mathbf{D}  $, which equals to maximise the log of the probability product (the log-likelihood):
 	\begin{equation}
-	\label{equ:energy}
-	  \log p(\mathbf{X} \mid \Theta ) = -E(\mathbf{X} \mid \Theta )  =  \frac{1}{K}\sum_{k=1}^K\log f(\mathbf{x}_k \mid \Theta ) - \log Z( \Theta)
-	%  = K(<\log f(\mathbf{x} \mid \Theta )>_{data} - \log Z( \Theta))
+	    \log  L (\Theta \mid \mathbf{D}) = \log p(\mathbf{D} \mid \Theta ) = \sum_{k=1}^K\log f(\mathbf{d}_k \mid \Theta ) - K \log Z( \Theta),
 	\end{equation}
-	
+	or the average log-likelihood:
+	\begin{equation}
+	\label{equ:like}
+		\hat{l} (\Theta \mid \mathbf{D}) =\frac{1}{K}\log  L (\Theta \mid \mathbf{D}) 
+		=\frac{1}{K}\sum_{k=1}^K\log f(\mathbf{d}_k \mid \Theta ) - \log Z( \Theta).
+	\end{equation}
 	Imagine three different conditions (probability function) as following.
 	
 	\textbf{First}, $f(\mathbf{x} \mid \Theta )$ is the probability density function (pdf) of a normal distribution $\mathcal{N}(x \mid \mu, \sigma )$.
 	Data vector $ \mathbf{x} $ is just a one dimensional data point, $x$.
 	$ Z( \Theta) $ equals to 1, thus $p(x \mid \Theta ) = \mathcal{N}(x \mid \mu, \sigma )$.
 	\begin{equation}
-	\log p(X \mid \theta ) =  \sum_{k=1}^K \log [\frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(x_k-\mu)^{2}}{2\sigma^{2}})]
+	\hat{l} (\Theta \mid D) =  
+	\frac{1}{K} \sum_{k=1}^K \log \left[ \frac{1}{\sigma \sqrt{2\pi}} \exp(-\frac{(d_k-\mu)^{2}}{2\sigma^{2}}) \right]
 	\label{pdf}
 	\end{equation}
-	To maximise Equation~\ref{pdf} (or to minimise the energy function) is to find the Maximum Likelihood Estimation (MLE) of parameters $ \mu $ and $ \sigma $, by deriving from the partial differential equations when they are equal to 0. 
+	To maximise Equation~\ref{pdf} is to find the Maximum Likelihood Estimation (MLE) of parameters $ \mu $ and $ \sigma $, by deriving from the partial differential equations when they are equal to 0. 
 	\begin{equation}
 	\left\{
 	\begin{aligned}
-	   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \mu}= \sum_{k=1}^K -\frac{1}{2\sigma^{2}}\dfrac{\partial (\mu-x_k)^{2}}{\partial \mu} = \sum_{k=1}^K -\frac{1}{\sigma^{2}}(\mu-x_k) = 0 \quad\\
-	   &\dfrac{\partial  \log p(X \mid \theta ) }{\partial \sigma^{2}}= -\frac{K}{2\sigma^{2}}+\frac{1}{2\sigma^{4}}\sum_{k=1}^K x_k^{2} -\frac{\mu}{\sigma^{4}}\sum_{k=1}^K x_k + \frac{K\mu^{2}}{2\sigma^{4}} = 0 \quad\\
+	   &\dfrac{\partial \hat{l} (\Theta \mid D)}{\partial \mu}= \sum_{k=1}^K -\frac{1}{2\sigma^{2}}\dfrac{\partial (\mu-d_k)^{2}}{\partial \mu} = \sum_{k=1}^K -\frac{1}{\sigma^{2}}(\mu-d_k) = 0 \quad\\
+	   &\dfrac{\partial \hat{l} (\Theta \mid D) }{\partial \sigma^{2}}= -\frac{K}{2\sigma^{2}}+\frac{1}{2\sigma^{4}}\sum_{k=1}^K d_k^{2} -\frac{\mu}{\sigma^{4}}\sum_{k=1}^K d_k + \frac{K\mu^{2}}{2\sigma^{4}} = 0 \quad\\
 	\end{aligned}
 	\right.
 	\end{equation}
 	\begin{equation}
 	\left\{
 	\begin{aligned}
-	    &\mu= \frac{1}{K}\sum_{k=1}^K x_k  \quad\\
-	    &\sigma^{2} = \frac{1}{K}\sum_{k=1}^K x_k^{2} - (\frac{1}{K}\sum_{k=1}^K x_k)^{2}
+	    &\mu= \frac{1}{K}\sum_{k=1}^K d_k  \quad\\
+	    &\sigma^{2} = \frac{1}{K}\sum_{k=1}^K d_k^{2} - (\frac{1}{K}\sum_{k=1}^K d_k)^{2}
 	\end{aligned}
 	\right.
 	\end{equation}
-	$p(x\mid \Theta )$ here is the function of two dimensional parameters $\mu$ and $\theta$, and searching the highest point in the parameter space ``is equivalent to being in the field on a clear, sunny day,''~\cite{woodfordnotes} seeing the point straight away.
+	$\hat{l} (\Theta \mid D)$ here is the function of two dimensional parameters $\mu$ and $\theta$, and searching the highest point in the parameter space ``is equivalent to being in the field on a clear, sunny day,''~\cite{woodfordnotes} seeing the point straight away.
 	
 	\textbf{Second}, the probability model function changes to be the sum of N normal distributions: 
 	\begin{equation}
 	f(x \mid \Theta ) = \sum_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i ).
 	\end{equation}
-	Derived from Equation~\ref{equ:energy}, the objective function is:
+	Derived from Equation~(\ref{equ:like}), the objective function is:
 	\begin{equation}
-	\log p(X \mid \Theta ) = \frac{1}{K}\sum_{k=1}^K \log \sum_{i=1}^N \mathcal{N}(x_k \mid \mu_i, \sigma_i ) - \log N,
+	\hat{l} (\Theta \mid D) = \frac{1}{K}\sum_{k=1}^K \log \sum_{i=1}^N \mathcal{N}(d_k \mid \mu_i, \sigma_i ) - \log N,
 	\end{equation}
-	where $\log Z( \Theta)]$ still equals a constant, $ N $, but the partial differential equation of any parameter depends on other model parameters.
+	where $\log Z( \Theta)$ still equals a constant, but the partial differential equation of any parameter depends on other model parameters.
 	It is very hard to solve equation set of log of sum, thus iteration methods are introduced, e.g., gradient descent method. %and expectation maximization (EM) algorithm
-	Searching for a local minimum of the energy function in the parameter space, it starts with an initial point, either random or well selected.
+	Searching for a local maximum of the likelihood function in the parameter space starts with an initial point, either random or well selected.
 	For each iteration, the partial derivatives for every dimension of the parameter point are calculated as the gradient.
-	The gradient determines the decent direction of the space search, the next parameter point is one step $ \eta $  towards the direction or is the lowest point found by line search.
+	The gradient determines the decent direction of the space search, the next parameter point is one step $ \eta $  towards the direction or is the highest point found by line search.
 	
 	The gradient descent method is equivalent to ``being in the field at night with a torch.''~\cite{woodfordnotes}.
 	And then the descent direction is estimated and chosen by using the torch to see the relative heights of the field a short distance in each direction.
@@ -126,25 +131,26 @@
 	f(x \mid \Theta ) = \prod_{i=1}^N\mathcal{N}(x \mid \mu_i, \sigma_i ),
 	\end{equation}
 	where the partition (normalisation) function $Z( \Theta)$ is no longer a constant, but varies accordance to all the parameters.
-	Essentially, the integration of the probability model, see Equation~\ref{equ:z_int} and~\ref{equ:z_dis}, is usually algebraically intractable.
-	We have to use numerical integration method to evaluate the Equation~\ref{equ:energy}, whose partial derivative is:
+	Essentially, the integration of the probability model, see Equation~(\ref{equ:z_int}) and~(\ref{equ:z_dis}), is usually algebraically intractable.
+	We have to use numerical integration method to evaluate the Equation~(\ref{equ:like}), whose partial derivative is (we are using vectors to generalise the problem):
 	\begin{equation}
 	\label{equ:part}
 	\begin{aligned}
-	\dfrac{\partial E(\mathbf{X} \mid \Theta)}{\partial \theta} 
-	& = \sum_{c=1}^{\infty} p(\mathbf{x}_c \mid \Theta) \dfrac{\partial \log f(\mathbf{x}_c \mid \Theta)}{\partial \theta} - \frac{1}{K}\sum_{k=1}^K \dfrac{\partial \log f(\mathbf{x}_k \mid \Theta)}{\partial \theta} \\
-	& = \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{p(\mathbf{x} \mid \Theta)} - 
-	\left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{X}} \\
-	&=\left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{X}^\infty} - \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{X}^0},
+	\dfrac{\partial \hat{l} (\Theta \mid \mathbf{D})}{\partial \theta} 
+	& = \frac{1}{K} \dfrac{\partial \sum_{k=1}^K\log f(\mathbf{d}_k \mid \Theta )}{\partial \theta} - \dfrac{\partial \log Z( \Theta)}{\partial \theta}\\
+	& =  \frac{1}{K}\sum_{k=1}^K \dfrac{\partial \log f(\mathbf{d}_k \mid \Theta)}{\partial \theta} - \int p(\mathbf{x} \mid \Theta) \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta} \D \mathbf{x}\\
+	& = \left \langle \dfrac{\partial \log f(\mathbf{d} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{D}} -\left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{C} \sim p(\mathbf{x} \mid \Theta)}  \\
+	&=\left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{X}_{data}} - \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{X}_{model}},
 	\end{aligned}
 	\end{equation}
-	where  $ <\cdot>_d $ denotes the mean expectation of $ \cdot $ given distribution of $d$.
-	The second term of the right-hand side is easy to get with the given data set $ \mathbf{X} $, and the first term can be approximated by generating samples according to $ p(\mathbf{x} \mid \Theta) $.
-	These samples is called ``fantasy data'' and can be generated using Monte Carlo Markov Chain (MCMC) sampling, see section~\ref{sec:mcmc}.
+	where  $ <\cdot>_x $ denotes the mean expectation of $ \cdot $ given distribution of $x$.
+	The first term of the right-hand side is easy to get with the given data set $ \mathbf{D} $, and the second term can be approximated by generating data samples $ \mathbf{C} $ according to $ p(\mathbf{x} \mid \Theta) $.
+	These generative samples is called ``fantasy data'' and can be generated using Monte Carlo Markov Chain (MCMC) sampling, see section~\ref{sec:mcmc}.
+	The detailed derivation process can be found in Appendix~\ref{app:part}.
 	Although in this example the integration of product of normal distribution is still tractable, it is also helpful to use numerical integration.
 
 	Go back to the metaphor of the parameter field, solving PoE problem is like searching the lowest point in a completely dark night without a torch.
-	The computation of Equation~\ref{equ:part} is to ``feel the gradient of the field under our feet''.~\cite{woodfordnotes}.
+	The computation of Equation~(\ref{equ:part}) is to ``feel the gradient of the field under our feet''.~\cite{woodfordnotes}.
 	%The motivation underlining Contrastive Divergence algorithm is to boost the training speed of a Markov Chain in order to represent the distribution of a PoE (Product of Expert) model.
 	%Thus the sampling can be followed using this trained Markov Chain model. 
 \subsection{MCMC Sampling}
@@ -248,15 +254,19 @@
 	Kullback–Leibler divergence is the measure of how different two probability distributions are:
 	\begin{equation}
 	\begin{aligned}
-	KL(p^0 \mid \mid p^{\infty})
+%	KL(p^0 \mid \mid p^{\infty})
+%	&= \sum_x p^0(\mathbf{x}) \log \dfrac{p^0(\mathbf{x})}{p^{\infty}(\mathbf{x} \mid \Theta)} \\
+%	&=  \sum_x p^0(\mathbf{x}) \log p^0(\mathbf{x}) - \left \langle p^{\infty}(\mathbf{x} \mid \Theta) \right \rangle_{p^0} \\
+%	&= - H(p^0) + E(\mathbf{x} \mid \Theta),
+	KL(P \mid \mid Q)
 	&= \sum_x p^0(\mathbf{x}) \log \dfrac{p^0(\mathbf{x})}{p^{\infty}(\mathbf{x} \mid \Theta)} \\
 	&=  \sum_x p^0(\mathbf{x}) \log p^0(\mathbf{x}) - \left \langle p^{\infty}(\mathbf{x} \mid \Theta) \right \rangle_{p^0} \\
-	&= - H(p^0) + E(\mathbf{x} \mid \Theta),
+	&= - H(p^0) + E(\mathbf{x} \mid \Theta),	
 	\end{aligned}
 	\end{equation}
 	and $ - H(p^0)  $ is independent from parameter $ \Theta $ (is static with given data set $ \mathbf{X} $).
-	Thus the objective function is the same with Equation~\ref{equ:energy}.
-	The partial derivative is the same with Equation~\ref{equ:part}:
+	Thus the objective function is the same with Equation~(\ref{equ:like}).
+	The partial derivative is the same with Equation~(\ref{equ:part}):
 	\begin{equation}
 		\label{equ:kl}
 		\dfrac{\partial KL(p^0 \mid \mid p^{\infty})}{\partial \theta}
@@ -267,7 +277,7 @@
 		\dfrac{\partial [KL(p^0 \mid \mid p^{\infty}) - KL(p^1 \mid \mid p^{\infty})]}{\partial \theta}
 		= \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^1} - \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^0},
 	\end{equation}
-	where the second term in equation~\ref{equ:kl} cancels out.
+	where the second term in equation~(\ref{equ:kl}) cancels out.
 	So Hinton proposed \textcolor{red}{the new contrastive divergence CD to make Gibbs sampling with only 1 step}.
 	Contrastive divergence is defined as:
 	\begin{equation}
@@ -277,16 +287,44 @@
 	\begin{itemize}
 		\item RBM is high dimensional data $ (\mathbf{v}, \mathbf{h}) $, which is perfect for Gibbs sampling.
 		$ p(\mathbf{v}, \mathbf{h} \mid \Theta) $ can be approximated by the conditional distribution $ p(\mathbf{v} \mid \mathbf{h}, \Theta) $
-		\item RBM is a PoE problem, which follows Equation~\ref{equ:part}.
-		\textcolor{red}{$ f(\mathbf{v}, \mathbf{h} \mid \Theta) $ is a PoE problem, but is $ f(\mathbf{v} \mid \Theta) $ a PoE too?}
+		\item RBM is a PoE problem, since
+		$ f(\mathbf{v}, \mathbf{h} \mid \Theta) $ is a PoE problem.
 		\begin{equation}
-			f(\mathbf{v}, \mathbf{h} \mid \Theta) =\exp (E(\mathbf{v}, \mathbf{h} \mid \Theta)) = \exp (-\sum_{i=1}^n a_i v_i - \sum_{j=1}^m b_j h_j - \sum_{i=1}^n \sum_{j=m}^n v_i W_{ij} h_j).
+			\begin{aligned}
+			& f(\mathbf{v}, \mathbf{h} \mid \Theta) =\exp (-E(\mathbf{v}, \mathbf{h} \mid \Theta)) \\
+			& E(\mathbf{v}, \mathbf{h} \mid \Theta)= -\sum_{i=1}^n a_i v_i - \sum_{j=1}^m b_j h_j - \sum_{i=1}^n \sum_{j=m}^n v_i W_{ij} h_j.\\
+			& p(\mathbf{v}, \mathbf{h} \mid \Theta) =\frac{\exp (E(\mathbf{v}, \mathbf{h} \mid \Theta))}{Z(\Theta)}\\
+			& Z(\Theta) = \sum_{\mathbf{v}} \sum_{\mathbf{h}} \exp (-E(\mathbf{v}, \mathbf{h} \mid \Theta)).
+			\end{aligned}
 		\end{equation}
+		Note that the energy function, $ E $, of a RBM is not the same energy function of log of probability product in Equation~(\ref{equ:like}).
+		Although, the combined probability function $ p(\mathbf{v}, \mathbf{h} \mid \Theta) $ is nicely defined as a PoE problem, we are more interested in the marginal probability function: $ p(\mathbf{v} \mid \Theta) $.
+		$ \mathbf{v} $ is the input of the vision nodes in RBM, which is the training data (not ($ \mathbf{v}, \mathbf{h}$) ). 
+		\begin{equation}
+		p(\mathbf{v} \mid \Theta) =\frac{\sum_{ \mathbf{h}} \exp (E(\mathbf{v}, \mathbf{h} \mid \Theta))}{Z(\Theta)}
+		\end{equation}		
+		$ p(\mathbf{v} \mid \Theta) $ is not a PoE problem, but the partial derivation of the negative energy function of the probability product is similar, since the intractable partition function is in common. 
 	\end{itemize}
 \subsection{Objective Function}
 \subsection{CD with 1-step Reconstruction}
 \section{Spiking RBM\cite{neftci2013event}}
 
+\begin{appendices}
+	\section{derivation process of Equation~(\ref{equ:part})}
+	\label{app:part}
+		\begin{equation}
+		\begin{aligned}
+		 \dfrac{\partial \log Z(\Theta)}{\partial \theta}
+		=&\frac{1}{Z(\Theta)}\dfrac{\partial Z(\Theta)}{\partial \theta}\\
+		=&\frac{1}{Z(\Theta)} \int \dfrac{\partial f(\mathbf{x} \mid \Theta)}{\partial \theta} \D \mathbf{x} \\
+		=&\frac{1}{Z(\Theta)} \int f(\mathbf{x} \mid \Theta) \frac{1}{f(\mathbf{x} \mid \Theta)} \dfrac{\partial  f(\mathbf{x} \mid \Theta)}{\partial \theta} \D \mathbf{x}\\
+		=& \int \frac{f(\mathbf{x} \mid \Theta) }{Z(\Theta)} \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta} \D \mathbf{x}\\
+		=& \int  p(\mathbf{x} \mid \Theta) \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta} \D \mathbf{x}\\
+		=&\left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{C \sim p(\mathbf{x} \mid \Theta)}
+		\end{aligned}
+		\end{equation}
+	\section{  }
+\end{appendices}
 \bibliography{ref} 
 \bibliographystyle{ieeetr}
 \end{document}
