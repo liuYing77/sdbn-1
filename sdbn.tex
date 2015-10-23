@@ -149,7 +149,7 @@
 	The detailed derivation process can be found in Appendix~\ref{app:part}.
 	Although in this example the integration of product of normal distribution is still tractable, it is also helpful to use numerical integration.
 
-	Go back to the metaphor of the parameter field, solving PoE problem is like searching the lowest point in a completely dark night without a torch.
+	Go back to the metaphor of the parameter field, solving PoE problem is like searching the highest point in a completely dark night without a torch.
 	The computation of Equation~(\ref{equ:part}) is to ``feel the gradient of the field under our feet''.~\cite{woodfordnotes}.
 	%The motivation underlining Contrastive Divergence algorithm is to boost the training speed of a Markov Chain in order to represent the distribution of a PoE (Product of Expert) model.
 	%Thus the sampling can be followed using this trained Markov Chain model. 
@@ -250,39 +250,52 @@
 	  \end{algorithmic}
 	\end{algorithm}
 	
-\subsection{CD Instead of KL(Kullback–Leibler)}
-	Kullback–Leibler divergence is the measure of how different two probability distributions are:
+\subsection{CD Instead of KL(Kullback-Leibler)}
+	Kullback-Leibler divergence is the measure of how different two probability distributions are:
 	\begin{equation}
 	\begin{aligned}
-%	KL(p^0 \mid \mid p^{\infty})
-%	&= \sum_x p^0(\mathbf{x}) \log \dfrac{p^0(\mathbf{x})}{p^{\infty}(\mathbf{x} \mid \Theta)} \\
-%	&=  \sum_x p^0(\mathbf{x}) \log p^0(\mathbf{x}) - \left \langle p^{\infty}(\mathbf{x} \mid \Theta) \right \rangle_{p^0} \\
-%	&= - H(p^0) + E(\mathbf{x} \mid \Theta),
 	KL(P \mid \mid Q)
-	&= \sum_x p^0(\mathbf{x}) \log \dfrac{p^0(\mathbf{x})}{p^{\infty}(\mathbf{x} \mid \Theta)} \\
-	&=  \sum_x p^0(\mathbf{x}) \log p^0(\mathbf{x}) - \left \langle p^{\infty}(\mathbf{x} \mid \Theta) \right \rangle_{p^0} \\
-	&= - H(p^0) + E(\mathbf{x} \mid \Theta),	
+	&= \int P(\mathbf{x}) \log \frac{P(\mathbf{x})}{Q(\mathbf{x})} \D \mathbf{x}
+	= \sum_{\mathbf{x}} P(\mathbf{x}) \log \frac{P(\mathbf{x})}{Q(\mathbf{x})} \\
+	&=  \sum_{\mathbf{x}} P(\mathbf{x}) \log P(\mathbf{x}) - \sum_{\mathbf{x}} P(\mathbf{x}) \log Q(\mathbf{x})\\
+	&= \left \langle \log P(\mathbf{x}) \right \rangle_{\mathbf{X} \sim P(\mathbf{x})} - \left \langle \log Q(\mathbf{x}) \right \rangle_{\mathbf{X} \sim P(\mathbf{x})} ,
 	\end{aligned}
 	\end{equation}
-	and $ - H(p^0)  $ is independent from parameter $ \Theta $ (is static with given data set $ \mathbf{X} $).
-	Thus the objective function is the same with Equation~(\ref{equ:like}).
-	The partial derivative is the same with Equation~(\ref{equ:part}):
+	and the second term of the right hand side is the average log-likelihood function see Equation~\ref{equ:like} if we see $P(\mathbf{x})$ is the training data distribution and $Q(\mathbf{x})$ is the model distribution:
 	\begin{equation}
-		\label{equ:kl}
-		\dfrac{\partial KL(p^0 \mid \mid p^{\infty})}{\partial \theta}
-		= \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^\infty} - \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^0}.
+	\begin{aligned}
+	& KL \left( p(\mathbf{x} \mid \mathbf{D}) \mid \mid p(\mathbf{x} \mid \Theta) \right)
+	=   \left \langle \log p(\mathbf{d} \mid \mathbf{D}) \right \rangle_{\mathbf{D}} - \left \langle \log p(\mathbf{d} \mid \Theta) \right \rangle_{\mathbf{D}}, \textit{where} \\
+	& \hat{l} (\Theta \mid \mathbf{D}) =\frac{1}{K}\log  L (\Theta \mid \mathbf{D}) 
+	=  \frac{1}{K}\log p(\mathbf{D} \mid \Theta ) 
+	= \frac{1}{K} \sum_{k=1}^{\mathbf{K}} \log f(\mathbf{d}_k \mid \Theta )
+	= \left \langle \log p(\mathbf{d} \mid \Theta) \right \rangle_{\mathbf{D}},
+	\end{aligned}
 	\end{equation}
-	Thus,
+	and $\left \langle \log p(\mathbf{d} \mid \mathbf{D}) \right \rangle_{\mathbf{D}}$ is independent with model parameters.
+	We use $ \mathbf{D} $ instead of $ \mathbf{X} \sim p(\mathbf{x} \mid \mathbf{D}) $, for $ p(\mathbf{x} \mid \mathbf{D}) $ is the distribution of data set $ \mathbf{D} $.
+	If we need to generate a sample sequence according to the distribution $ p(\mathbf{x} \mid \mathbf{D}) $, $ \mathbf{D} $ itself is the most approximated.
+	Thus the negative partial derivative is the same with Equation~(\ref{equ:part}):
 	\begin{equation}
-		\dfrac{\partial [KL(p^0 \mid \mid p^{\infty}) - KL(p^1 \mid \mid p^{\infty})]}{\partial \theta}
-		= \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^1} - \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^0},
+	\label{equ:kl}
+		-\dfrac{\partial KL \left( p(\mathbf{x} \mid \mathbf{D}) \mid \mid p(\mathbf{x} \mid \Theta) \right)}{\partial \theta}
+		= \dfrac{\partial \hat{l} (\Theta \mid \mathbf{D})}{\partial \theta} \\
+		= \left \langle \dfrac{\partial \log f(\mathbf{d} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{D}} - \left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{C} \sim p(\mathbf{x} \mid \Theta)} .
 	\end{equation}
-	where the second term in equation~(\ref{equ:kl}) cancels out.
-	So Hinton proposed \textcolor{red}{the new contrastive divergence CD to make Gibbs sampling with only 1 step}.
-	Contrastive divergence is defined as:
-	\begin{equation}
-		CD_n = KL(p^0 \mid \mid p^{\infty}) - KL(p^n \mid \mid p^{\infty})
-	\end{equation}
+	Therefore, for each iteration of search in the parameter space we measure $ k $ number of training data $ \mathbf{d} $ and fantasy data $\mathbf{c} $.
+	If $ k $ is big enough, we believe it is an approximation of KL.
+	However, if we just take a small number of data even $ k = 1 $ per iteration we call the small data derivative ``k-step contrastive convergence ($ CD_{k}) $'' and it will significantly reduce the training time.
+%	Thus,
+%	\begin{equation}
+%		\dfrac{\partial [KL(p^0 \mid \mid p^{\infty}) - KL(p^1 \mid \mid p^{\infty})]}{\partial \theta}
+%		= \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^1} - \left \langle \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{p}^0},
+%	\end{equation}
+%	where the second term in equation~(\ref{equ:kl}) cancels out.
+%	So Hinton proposed \textcolor{red}{the new contrastive divergence CD to make Gibbs sampling with only 1 step}.
+%	Contrastive divergence is defined as:
+%	\begin{equation}
+%		CD_n = KL(p^0 \mid \mid p^{\infty}) - KL(p^n \mid \mid p^{\infty})
+%	\end{equation}
 \section{RBM\cite{zhang2013rbm}}
 	\begin{itemize}
 		\item RBM is high dimensional data $ (\mathbf{v}, \mathbf{h}) $, which is perfect for Gibbs sampling.
@@ -320,7 +333,7 @@
 		=&\frac{1}{Z(\Theta)} \int f(\mathbf{x} \mid \Theta) \frac{1}{f(\mathbf{x} \mid \Theta)} \dfrac{\partial  f(\mathbf{x} \mid \Theta)}{\partial \theta} \D \mathbf{x}\\
 		=& \int \frac{f(\mathbf{x} \mid \Theta) }{Z(\Theta)} \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta} \D \mathbf{x}\\
 		=& \int  p(\mathbf{x} \mid \Theta) \dfrac{\partial \log f(\mathbf{x} \mid \Theta)}{\partial \theta} \D \mathbf{x}\\
-		=&\left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{C \sim p(\mathbf{x} \mid \Theta)}
+		=&\left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{C} \sim p(\mathbf{x} \mid \Theta)}
 		\end{aligned}
 		\end{equation}
 	\section{  }
