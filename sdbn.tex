@@ -217,6 +217,7 @@
 	
 	The probability model function as the product of N normal distributions can be approximated by using this Metropolis-Hastings sampling.
 \subsection{Gibbs Sampling}
+	\label{sec:Gibbs}
 	For high dimensional data sampling, it is possible to make the accept rate to 1 which increases the convergence speed dramatically.
 	According to conditional probability:
 	\begin{equation}
@@ -251,17 +252,19 @@
 	\end{algorithm}
 	
 \subsection{CD Instead of KL(Kullback-Leibler)}
+\label{sec:CD}
 	Kullback-Leibler divergence is the measure of how different two probability distributions are:
 	\begin{equation}
 	\begin{aligned}
 	KL(P \mid \mid Q)
-	&= \int P(\mathbf{x}) \log \frac{P(\mathbf{x})}{Q(\mathbf{x})} \D \mathbf{x}
-	= \sum_{\mathbf{x}} P(\mathbf{x}) \log \frac{P(\mathbf{x})}{Q(\mathbf{x})} \\
-	&=  \sum_{\mathbf{x}} P(\mathbf{x}) \log P(\mathbf{x}) - \sum_{\mathbf{x}} P(\mathbf{x}) \log Q(\mathbf{x})\\
+	&= \int P(\mathbf{x}) \log \frac{P(\mathbf{x})}{Q(\mathbf{x})} \D \mathbf{x}\\
+	%= \sum_{\mathbf{x}} P(\mathbf{x}) \log \frac{P(\mathbf{x})}{Q(\mathbf{x})} \\
+	&= \int P(\mathbf{x}) \log P(\mathbf{x}) \D \mathbf{x} - \int P(\mathbf{x}) \log Q(\mathbf{x}) \D \mathbf{x}\\
+	%=  \sum_{\mathbf{x}} P(\mathbf{x}) \log P(\mathbf{x}) - \sum_{\mathbf{x}} P(\mathbf{x}) \log Q(\mathbf{x})\\
 	&= \left \langle \log P(\mathbf{x}) \right \rangle_{\mathbf{X} \sim P(\mathbf{x})} - \left \langle \log Q(\mathbf{x}) \right \rangle_{\mathbf{X} \sim P(\mathbf{x})} ,
 	\end{aligned}
 	\end{equation}
-	and the second term of the right hand side is the average log-likelihood function see Equation~\ref{equ:like} if we see $P(\mathbf{x})$ is the training data distribution and $Q(\mathbf{x})$ is the model distribution:
+	and the second term of the right hand side is the average log-likelihood function (see Equation~\ref{equ:like}) if $P(\mathbf{x})$ is the training data distribution and $Q(\mathbf{x})$ is the model distribution:
 	\begin{equation}
 	\begin{aligned}
 	& KL \left( p(\mathbf{x} \mid \mathbf{D}) \mid \mid p(\mathbf{x} \mid \Theta) \right)
@@ -269,22 +272,28 @@
 	& \hat{l} (\Theta \mid \mathbf{D}) =\frac{1}{K}\log  L (\Theta \mid \mathbf{D}) 
 	=  \frac{1}{K}\log p(\mathbf{D} \mid \Theta ) 
 	= \frac{1}{K} \sum_{k=1}^{\mathbf{K}} \log f(\mathbf{d}_k \mid \Theta )
-	= \left \langle \log p(\mathbf{d} \mid \Theta) \right \rangle_{\mathbf{D}},
+	= \left \langle \log p(\mathbf{d} \mid \Theta) \right \rangle_{\mathbf{D}}.
 	\end{aligned}
 	\end{equation}
-	and $\left \langle \log p(\mathbf{d} \mid \mathbf{D}) \right \rangle_{\mathbf{D}}$ is independent with model parameters.
 	We use $ \mathbf{D} $ instead of $ \mathbf{X} \sim p(\mathbf{x} \mid \mathbf{D}) $, for $ p(\mathbf{x} \mid \mathbf{D}) $ is the distribution of data set $ \mathbf{D} $.
 	If we need to generate a sample sequence according to the distribution $ p(\mathbf{x} \mid \mathbf{D}) $, $ \mathbf{D} $ itself is the most approximated.
-	Thus the negative partial derivative is the same with Equation~(\ref{equ:part}):
+	Since $\left \langle \log p(\mathbf{d} \mid \mathbf{D}) \right \rangle_{\mathbf{D}}$ is independent with model parameters, the negative partial derivative is the same with Equation~(\ref{equ:part}):
 	\begin{equation}
 	\label{equ:kl}
 		-\dfrac{\partial KL \left( p(\mathbf{x} \mid \mathbf{D}) \mid \mid p(\mathbf{x} \mid \Theta) \right)}{\partial \theta}
 		= \dfrac{\partial \hat{l} (\Theta \mid \mathbf{D})}{\partial \theta} \\
 		= \left \langle \dfrac{\partial \log f(\mathbf{d} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{D}} - \left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{C} \sim p(\mathbf{x} \mid \Theta)} .
 	\end{equation}
-	Therefore, for each iteration of search in the parameter space we measure $ k $ number of training data $ \mathbf{d} $ and fantasy data $\mathbf{c} $.
-	If $ k $ is big enough, we believe it is an approximation of KL.
-	However, if we just take a small number of data even $ k = 1 $ per iteration we call the small data derivative ``k-step contrastive convergence ($ CD_{k}) $'' and it will significantly reduce the training time.
+	Therefore, for each iteration searching in the parameter space we use $ k $ number of training data $ \mathbf{D}=(\mathbf{d}_1, \mathbf{d}_2, ..., \mathbf{d}_k) $ and fantasy data $ \mathbf{C}=(\mathbf{c}_1, \mathbf{c}_2, ..., \mathbf{c}_k) $.
+	If $ k $ is big enough, sampling sequences $ \mathbf{D} $ and $ \mathbf{C} $ are able to approximate the data and the model distribution thus to get derivatives of the KL function.
+	However, if we just take a small number of data, even $ k = 1 $ per iteration~\cite{hinton2002training}, the KL divergence can be seen as a ``k-step contrastive convergence ($ CD_{k}) $'':
+	\begin{equation}
+		\dfrac{\partial CD_{k}}{\partial \theta} 
+		= - \left \langle \dfrac{\partial \log f(\mathbf{d} \mid \Theta)}{\partial \theta}\right \rangle_{(\mathbf{d}_1, \mathbf{d}_2, ..., \mathbf{d}_k) } + \left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{(\mathbf{c}_1, \mathbf{c}_2, ..., \mathbf{c}_k) \sim p(\mathbf{x} \mid \Theta)}.
+	\end{equation}
+	Since the searching step $ \eta $ is very small, the derivatives of points in a small area can be seen as the same.
+	The step made for a single $ CD_{k}) $ can be approximated by summation of $ k $ steps of $ CD_{1}) $ as long as the searching does not go far.
+	Otherwise the searching path may follow some direction for accumulated steps away from the original area, thus significantly reduces the training time.
 %	Thus,
 %	\begin{equation}
 %		\dfrac{\partial [KL(p^0 \mid \mid p^{\infty}) - KL(p^1 \mid \mid p^{\infty})]}{\partial \theta}
@@ -297,33 +306,68 @@
 %		CD_n = KL(p^0 \mid \mid p^{\infty}) - KL(p^n \mid \mid p^{\infty})
 %	\end{equation}
 \section{RBM\cite{zhang2013rbm}}
-	\begin{itemize}
-		\item RBM is high dimensional data $ (\mathbf{v}, \mathbf{h}) $, which is perfect for Gibbs sampling.
-		$ p(\mathbf{v}, \mathbf{h} \mid \Theta) $ can be approximated by the conditional distribution $ p(\mathbf{v} \mid \mathbf{h}, \Theta) $
-		\item RBM is a PoE problem, since
-		$ f(\mathbf{v}, \mathbf{h} \mid \Theta) $ is a PoE problem.
-		\begin{equation}
-			\begin{aligned}
-			& f(\mathbf{v}, \mathbf{h} \mid \Theta) =\exp (-E(\mathbf{v}, \mathbf{h} \mid \Theta)) \\
-			& E(\mathbf{v}, \mathbf{h} \mid \Theta)= -\sum_{i=1}^n a_i v_i - \sum_{j=1}^m b_j h_j - \sum_{i=1}^n \sum_{j=m}^n v_i W_{ij} h_j.\\
-			& p(\mathbf{v}, \mathbf{h} \mid \Theta) =\frac{\exp (E(\mathbf{v}, \mathbf{h} \mid \Theta))}{Z(\Theta)}\\
-			& Z(\Theta) = \sum_{\mathbf{v}} \sum_{\mathbf{h}} \exp (-E(\mathbf{v}, \mathbf{h} \mid \Theta)).
-			\end{aligned}
-		\end{equation}
-		Note that the energy function, $ E $, of a RBM is not the same energy function of log of probability product in Equation~(\ref{equ:like}).
-		Although, the combined probability function $ p(\mathbf{v}, \mathbf{h} \mid \Theta) $ is nicely defined as a PoE problem, we are more interested in the marginal probability function: $ p(\mathbf{v} \mid \Theta) $.
-		$ \mathbf{v} $ is the input of the vision nodes in RBM, which is the training data (not ($ \mathbf{v}, \mathbf{h}$) ). 
-		\begin{equation}
-		p(\mathbf{v} \mid \Theta) =\frac{\sum_{ \mathbf{h}} \exp (E(\mathbf{v}, \mathbf{h} \mid \Theta))}{Z(\Theta)}
-		\end{equation}		
-		$ p(\mathbf{v} \mid \Theta) $ is not a PoE problem, but the partial derivation of the negative energy function of the probability product is similar, since the intractable partition function is in common. 
-	\end{itemize}
+	RBM is a restricted version of Boltzman machine, where there are only connections between layers of units but not between units within a layer, see Figure~\ref{fig:RBM}.
+	$ v $ is the layer of visible units representing the observable data $ \mathbf{v} $, while $ h $ are the hidden units which can be seen as feature extractors.
+	The connections between the hidden layer and the visible layers are bidirectional weights, $ \mathbf{W} $.
+	Note that, both visible and hidden units have their bias individually, $ \mathbf{a} $ and $ \mathbf{b} $.
+	Thus the RBM consists of the data $ \mathbf{D} = \mathbf{V} = (\mathbf{v}_1, \mathbf{v}_2, ..., \mathbf{v}_K ) $, the model parameters $ \Theta = (\mathbf{a}, \mathbf{b}, \mathbf{W}) $ and the hidden units $ \mathbf{h} \sim p(\mathbf{h} \mid \mathbf{v}, \Theta) $.
+	\begin{figure}[hbt]
+	\centering
+		\includegraphics[width=0.6\textwidth]{img/RBM.pdf}
+		\caption{A typical RBM structure.}
+		\label{fig:RBM}
+	\end{figure}
+	
+	The Energy function of a RBM is defined as, which has $ n $ vision units and $ m $ hidden ones:
+	\begin{equation}
+		E(\mathbf{v}, \mathbf{h} \mid \Theta)= -\sum_{i=1}^n a_i v_i - \sum_{j=1}^m b_j h_j - \sum_{i=1}^n \sum_{j=m}^n v_i W_{ij} h_j.
+	\end{equation}
+	And the model function and its probability functions are as follows:
+	\begin{equation}
+		\begin{aligned}
+		& f(\mathbf{v}, \mathbf{h} \mid \Theta) =e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)} \\
+		& p(\mathbf{v}, \mathbf{h} \mid \Theta) =\frac{e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{Z(\Theta)}\\
+		& Z(\Theta) = \sum_{\mathbf{v}} \sum_{\mathbf{h}} e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}.
+		\end{aligned}
+	\end{equation}
+	Note that, the model function $ f(\mathbf{v}, \mathbf{h} \mid \Theta) $ is nicely defined as a PoE problem, and each hidden unit represent an expert.
+	However, we are more interested in the marginal probability function: $ p(\mathbf{v} \mid \Theta) $:
+	\begin{equation}
+		p(\mathbf{v} \mid \Theta) =\frac{\sum_{ \mathbf{h}} e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{Z(\Theta)}.
+	\end{equation}		
 \subsection{Objective Function}
+	Although $ p(\mathbf{v} \mid \Theta) $ is not a PoE problem, the partial derivation of the average log-likelihood function still applies to Equation~(\ref{equ:part}) and the intractable integration is the same problem here:
+	\begin{equation}
+		\label{equ:RBM}
+		\begin{aligned}
+		\dfrac{\partial \hat{l} (\Theta \mid \mathbf{D})}{\partial \theta} 
+		& = \left \langle \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{h} \sim p( \mathbf{h} \mid \mathbf{v}, \Theta), \mathbf{V}} 
+		- \left \langle \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{v}, \mathbf{h} \sim p( \mathbf{v}, \mathbf{h} \mid  \Theta)}.  \\
+		\end{aligned}
+	\end{equation}
+	The detailed derivation process, please see Appendix~\ref{app:RBM}.
 \subsection{CD with 1-step Reconstruction}
+	Both terms of the derivatives of the average log-likelihood function (Equation~(\ref{equ:RBM})) are intractable, so generative models for sampling is needed.
+	As stated in Section~\ref{sec:CD}, for each iteration only one sample is generated.
+	
+	Regarding to the first term, given a training data $ \mathbf{v}_0 $ we first generate a hidden vector according to the conditional distribution $ \mathbf{h}_0 \sim p( \mathbf{h} \mid \mathbf{v}_0, \Theta) $.
+	Welling etc. have proposed~\cite{welling2004exponential} that both the hidden and visible units can be any exponential unit, such as softmax, Gaussian and Poissonian.
+	Here we take a Bernoulli-Bernoulli RBM as an example, where each node is a sigmoidal unit.
+	The conditional probability function is as follows:
+	\begin{equation}
+		p(h_i = 1 \mid \mathbf{v}) = \sigma(\sum_{j=1}^{m} W_{ij} \cdot \mathbf{v} + b_j).
+	\end{equation}
+	
+	The second term is perfect fit for Gibbs sampling, since we can $ p(\mathbf{v}, \mathbf{h} \mid \Theta) $ as a 2D vector and generating the samples by jumping in a Markov Chain with the transformation probability matrix $ p(\mathbf{v} \mid \mathbf{h}, \Theta) $ and $ p(\mathbf{h} \mid \mathbf{v}, \Theta) $, refer to Section~\ref{sec:Gibbs}.
+	So, with the given data $ \mathbf{v}_0 $ and the sampling data $ \mathbf{h}_0 $, we have the initial data point in this Markov Chain,  ($ \mathbf{v}_0, \mathbf{h}_0$).
+	The transformation starts from the axis of $ \mathbf{v} $, then we get $ \mathbf{v}_1 \sim p( \mathbf{v} \mid \mathbf{h}_0, \Theta) $.
+	It follows the next axis $ \mathbf{h} $, similarly we get $ \mathbf{h}_1 \sim p( \mathbf{h} \mid \mathbf{v}_1, \Theta) $.
+	So far we obtain the first sample along the Markov Chain, ($ \mathbf{v}_1, \mathbf{h}_1$) thus to solve the objective function with one iteration.
+	The algorithm is described below:   
 \section{Spiking RBM\cite{neftci2013event}}
 
 \begin{appendices}
-	\section{derivation process of Equation~(\ref{equ:part})}
+	\section{Derivation process of Equation~(\ref{equ:part})}
 	\label{app:part}
 		\begin{equation}
 		\begin{aligned}
@@ -336,7 +380,26 @@
 		=&\left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{C} \sim p(\mathbf{x} \mid \Theta)}
 		\end{aligned}
 		\end{equation}
-	\section{  }
+	\section{Derivation process of Equation~(\ref{equ:RBM})  }
+	\label{app:RBM}
+	\begin{equation}
+		\begin{aligned}
+		\dfrac{\partial \hat{l} (\Theta \mid \mathbf{D})}{\partial \theta} 
+		& = \left \langle \dfrac{\partial \log f(\mathbf{d} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{V=D}} -\left \langle \dfrac{\partial \log f(\mathbf{v} \mid \Theta)}{\partial \theta}\right \rangle_{\mathbf{V} \sim p(\mathbf{x} \mid \Theta)}  \\
+		& = \left \langle \dfrac{\partial \log \sum_{ \mathbf{h}} e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta}\right \rangle_{\mathbf{V}} 
+		-\left \langle \dfrac{\partial \log \sum_{ \mathbf{h}} e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)} }{\partial \theta}\right \rangle_{\mathbf{V} \sim p(\mathbf{v} \mid \Theta)}  \\
+		& = \left \langle \sum_{ \mathbf{h}} \frac{e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\sum_{ \mathbf{h}} e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}} \cdot \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{V}} 
+		- \left \langle \sum_{ \mathbf{h}} \frac{e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\sum_{ \mathbf{h}} e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}} \cdot \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{V} \sim p(\mathbf{v} \mid \Theta)}  \\
+		& = \left \langle \sum_{ \mathbf{h}} \frac{p(\mathbf{v}, \mathbf{h} \mid \Theta)}{p(\mathbf{v} \mid \Theta)} \cdot \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{V}} 
+		- \left \langle \sum_{ \mathbf{h}}  \frac{p(\mathbf{v}, \mathbf{h} \mid \Theta)}{p(\mathbf{v} \mid \Theta)} \cdot \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{V} \sim p(\mathbf{v} \mid \Theta)}  \\
+		& = \left \langle \sum_{ \mathbf{h}} p( \mathbf{h} \mid \mathbf{v}, \Theta) \cdot \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{V}} 
+		- \left \langle \sum_{ \mathbf{h}} p( \mathbf{h} \mid \mathbf{v}, \Theta) \cdot \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{V} \sim p(\mathbf{v} \mid \Theta)}  \\
+		& = \left \langle \left \langle \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{h} \sim p( \mathbf{h} \mid \mathbf{v}, \Theta)} \right \rangle_{\mathbf{V}}
+		- \left \langle \left \langle \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{h} \sim p( \mathbf{h} \mid \mathbf{v}, \Theta)} \right \rangle_{\mathbf{V} \sim p(\mathbf{v} \mid \Theta)}  \\
+		& = \left \langle \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{h} \sim p( \mathbf{h} \mid \mathbf{v}, \Theta), \mathbf{V}} 
+		- \left \langle \dfrac{\partial e^{-E(\mathbf{v}, \mathbf{h} \mid \Theta)}}{\partial \theta} \right \rangle_{\mathbf{v}, \mathbf{h} \sim p( \mathbf{v}, \mathbf{h} \mid  \Theta)}  \\
+		\end{aligned}
+	\end{equation}
 \end{appendices}
 \bibliography{ref} 
 \bibliographystyle{ieeetr}
