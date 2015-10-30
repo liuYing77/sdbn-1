@@ -12,7 +12,7 @@ import datetime
 def plot_digit(img_raw):
     img_raw = np.uint8(img_raw)
     plt.figure(figsize=(5,5))
-    im = plt.imshow(np.reshape(img_raw,(28,28)), cmap=cm.gray_r)
+    im = plt.imshow(np.reshape(img_raw,(28,28)), cmap=cm.gray_r,interpolation='none')
     plt.colorbar(im, fraction=0.046, pad=0.04)
 
 def plot_weight(img_raw):

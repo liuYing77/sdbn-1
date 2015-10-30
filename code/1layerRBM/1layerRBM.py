@@ -1,3 +1,9 @@
+'''
+Typical usage:
+python 1layerRBM.py 1000 50 3 cd
+'''
+import sys
+import random
 import numpy as np
 import poisson_tools as pt
 import matplotlib.pyplot as plt
@@ -11,25 +17,7 @@ def sigmoid_sampling(data, weight, bias):
     samples = np.zeros(prob.shape)
     samples[index_on]=1.
     return samples
-'''
-def update_para(v0, h0, v1, h1, a, b, w, eta ):
-    delta_a = np.zeros(w.shape[0])
-    delta_b = np.zeros(w.shape[1])
-    delta_w = np.zeros(w.shape)
-    batch_size = v0.shape[0]
-    for k in range(batch_size):
-        for i in range(w.shape[0]):
-            delta_a[i] = eta * (v0[k][i] - v1[k][i])
-        for j in range(w.shape[1]):
-            delta_b[j] = eta * (h0[k][j] - h1[k][j])
-        for i in range(w.shape[0]):
-            for j in range(w.shape[1]):
-                delta_w[i][j] += eta * (v0[k][i]*h0[k][j] - v1[k][i]*h1[k][j])
-    a += delta_a/batch_size
-    b += delta_b/batch_size
-    w += delta_w/batch_size
-    return a, b, w
-'''
+
 def update_para(v0, h0, v1, h1, a, b, w, eta ):
     delta_a = np.zeros(v0.shape)
     delta_b = np.zeros(h0.shape)
@@ -50,14 +38,24 @@ def update_para(v0, h0, v1, h1, a, b, w, eta ):
     w += delta_w/np.float(batch_size)
     return a, b, w
 
+train_num = int(sys.argv[1])
+batch_size = int(sys.argv[2])
+epoc = int(sys.argv[3])
+alg = sys.argv[4]
+
+random.seed(0)
+
 train_x, train_y = pt.get_train_data()
 train_x = train_x > 50
 
 digit = 5
 label_list = np.array(train_y).astype(int)
 index_digit = np.where(label_list==digit)[0]
-train_num = len(index_digit)-1
-#train_num = 110
+if train_num <= 1 or train_num > len(index_digit):
+    train_num = len(index_digit) - 1
+else:
+    train_num = train_num - 1
+
 index_train = index_digit[0:train_num]
 Data_v = np.array(train_x[index_train]).astype(float)
 
@@ -69,38 +67,39 @@ pixel_on = np.sum(Data_v,0)
 a = np.log((pixel_on + 0.01)/(train_num - pixel_on + 0.01))
 eta = 0.001
 
-batch_size = 2
-for iteration in range(4):
-    '''
-    # Persistant CD
-    for k in range(0,train_num,batch_size):
-        max_bsize = min(train_num-k, batch_size)
-        data_v = Data_v[k:k+max_bsize]
-        data_h = sigmoid_sampling(data_v, W, b)
-        gibbs_v = np.zeros(data_v.shape)
-        gibbs_h = np.zeros(data_h.shape)
-        gibbs_v[0] = sigmoid_sampling(data_h[0], W.transpose(), a)
-        gibbs_h[0] = sigmoid_sampling(data_v[0], W, b)
-        for g_step in range(1, max_bsize):
-            gibbs_v[g_step] = sigmoid_sampling(gibbs_h[g_step-1], W.transpose(), a)
-            gibbs_h[g_step] = sigmoid_sampling(gibbs_v[g_step-1], W, b)
-        a, b, W = update_para(data_v, data_h, gibbs_v, gibbs_h, a, b, W, eta)
-        print iteration, k 
-    '''
-    for k in range(0,train_num,batch_size):
-        max_bsize = min(train_num-k, batch_size)
-        data_v = Data_v[k:k+max_bsize]
-        data_h = sigmoid_sampling(data_v, W, b)
-        gibbs_v = sigmoid_sampling(data_h, W.transpose(), a)
-        gibbs_h = sigmoid_sampling(gibbs_v, W, b)
-        a, b, W = update_para(data_v, data_h, gibbs_v, gibbs_h, a, b, W, eta)
-        print iteration, k
+for iteration in range(epoc):
+    if alg == 'pcd':
+        # Persistant CD
+        for k in range(0,train_num,batch_size):
+            max_bsize = min(train_num-k, batch_size)
+            data_v = Data_v[k:k+max_bsize]
+            data_h = sigmoid_sampling(data_v, W, b)
+            gibbs_v = np.zeros(data_v.shape)
+            gibbs_h = np.zeros(data_h.shape)
+            gibbs_v[0] = sigmoid_sampling(data_h[0], W.transpose(), a)
+            gibbs_h[0] = sigmoid_sampling(data_v[0], W, b)
+            for g_step in range(1, max_bsize):
+                gibbs_v[g_step] = sigmoid_sampling(gibbs_h[g_step-1], W.transpose(), a)
+                gibbs_h[g_step] = sigmoid_sampling(gibbs_v[g_step-1], W, b)
+            a, b, W = update_para(data_v, data_h, gibbs_v, gibbs_h, a, b, W, eta)
+            print iteration+1, k+1 
+    else:
+        # CD
+        for k in range(0,train_num,batch_size):
+            max_bsize = min(train_num-k, batch_size)
+            data_v = Data_v[k:k+max_bsize]
+            data_h = sigmoid_sampling(data_v, W, b)
+            gibbs_v = sigmoid_sampling(data_h, W.transpose(), a)
+            gibbs_h = sigmoid_sampling(gibbs_v, W, b)
+            a, b, W = update_para(data_v, data_h, gibbs_v, gibbs_h, a, b, W, eta)
+            print iteration+1, k+1
     
+    np.save('theta/%d_b%d_epoc%d.npy'%(train_num, batch_size, iteration+1),[a,b,W])
     data_v = np.array(train_x[index_digit[train_num]]).astype(float)
     data_h = sigmoid_sampling(data_v, W, b)
     recon = sigmoid_sampling(data_h, W.transpose(), a)
     pt.plot_digit(recon)
-    plt.draw()
-
-np.save('theta/test.npy',[a,b,W])
-plt.show()
+    #plt.draw()
+    plt.savefig('results/%d_b%d_epoc%d.pdf'%(train_num, batch_size, iteration+1))
+    
+#plt.show()
