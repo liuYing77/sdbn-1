@@ -43,7 +43,7 @@ train_num = int(sys.argv[1])
 batch_size = int(sys.argv[2])
 epoc = int(sys.argv[3])
 alg = sys.argv[4]
-
+start = int(sys.argv[5])
 np.random.seed(0)
 
 train_x, train_y = pt.get_train_data()
@@ -68,9 +68,8 @@ pixel_on = np.sum(Data_v,0)
 a = np.log((pixel_on + 0.01)/(train_num - pixel_on + 0.01))
 eta = 0.001
 
-start = 750
-[a,b,W] = np.load('/home/liuq/apt/2ndYear/sDBN/theta/%04d_b%04d_epoc%04d_%s.npy'%(train_num, batch_size, start, alg))
-for iteration in range(start,epoc):
+[a,b,W] = np.load('/home/liuq/apt/2ndYear/sDBN/theta/%04d_b%04d_e_%05d_%s.npy'%(train_num, batch_size, start, alg))
+for iteration in range(start,start+epoc):
     if alg == 'pcd':
         # Persistant CD
         print alg
@@ -97,13 +96,5 @@ for iteration in range(start,epoc):
             gibbs_h = sigmoid_sampling(gibbs_v, W, b)
             a, b, W = update_para(data_v, data_h, gibbs_v, gibbs_h, a, b, W, eta)
             print iteration+1, k+1
-    
-    np.save('/home/liuq/apt/2ndYear/sDBN/theta/%04d_b%04d_epoc%04d_%s.npy'%(train_num, batch_size, iteration+1, alg),[a,b,W])
-    data_v = np.array(train_x[index_digit[train_num]]).astype(float)
-    data_h = sigmoid_sampling(data_v, W, b)
-    recon = sigmoid_sampling(data_h, W.transpose(), a)
-    pt.plot_digit(recon)
-    #plt.draw()
-    plt.savefig('/home/liuq/apt/2ndYear/sDBN/results/%04d_b%04d_epoc%04d_%s.pdf'%(train_num, batch_size, iteration+1, alg))
-    
-#plt.show()
+
+np.save('/home/liuq/apt/2ndYear/sDBN/theta/%04d_b%04d_e_%05d_%s.npy'%(train_num, batch_size, start+epoc, alg),[a,b,W])

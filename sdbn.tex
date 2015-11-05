@@ -1,6 +1,7 @@
 \documentclass[11pt,twoside,a4paper]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{verbatim}
+\usepackage[justification=centering]{subfig}
 \usepackage{graphicx}
 \usepackage{url} % typeset URL's reasonably
 \usepackage{listings}
@@ -9,7 +10,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 %\usepackage[]{algorithm2e}
-\usepackage{subcaption}
+%\usepackage{subcaption}
 \usepackage{color}
 \usepackage{multirow}
 \usepackage{makecell}
@@ -288,12 +289,16 @@
 	If $ k $ is big enough, sampling sequences $ \mathbf{D} $ and $ \mathbf{C} $ are able to approximate the data and the model distribution thus to get derivatives of the KL function.
 	However, if we just take a small number of data, even $ k = 1 $ per iteration~\cite{hinton2002training}, the KL divergence can be seen as a ``k-step contrastive convergence ($ CD_{k}) $'':
 	\begin{equation}
+	\label{equ:cdk}
 		\dfrac{\partial CD_{k}}{\partial \theta} 
 		= - \left \langle \dfrac{\partial \log f(\mathbf{d} \mid \Theta)}{\partial \theta}\right \rangle_{(\mathbf{d}_1, \mathbf{d}_2, ..., \mathbf{d}_k) } + \left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{(\mathbf{c}_1, \mathbf{c}_2, ..., \mathbf{c}_k) \sim p(\mathbf{x} \mid \Theta)}.
 	\end{equation}
 	Since the searching step $ \eta $ is very small, the derivatives of points in a small area can be seen as the same.
-	The step made for a single $ CD_{k}) $ can be approximated by summation of $ k $ steps of $ CD_{1}) $ as long as the searching does not go far.
+	The step made for a single $ CD_{k} $ can be approximated by summation of $ k $ steps of $ CD_{1} $ as long as the searching does not go far.
 	Otherwise the searching path may follow some direction for accumulated steps away from the original area, thus significantly reduces the training time.
+	
+	Although there is reasonable explanation on using $CD_1$ for parameter space searching, arguments exist over whether the search converge to the same maxima/minima as $CD_\infty$.
+	As an initial exploration over the problem we tested some experiments on Section~\ref{sec:cd1}. 
 %	Thus,
 %	\begin{equation}
 %		\dfrac{\partial [KL(p^0 \mid \mid p^{\infty}) - KL(p^1 \mid \mid p^{\infty})]}{\partial \theta}
@@ -374,7 +379,7 @@
 		p(h_i = 1 \mid \mathbf{v}) = \sigma(\sum_{j=1}^{m} W_{ij} \cdot \mathbf{v} + b_j).
 	\end{equation}
 	
-	The second term is perfect fit for Gibbs sampling, since we can $ p(\mathbf{v}, \mathbf{h} \mid \Theta) $ as a 2D vector and generating the samples by jumping in a Markov Chain with the transformation probability matrix $ p(\mathbf{v} \mid \mathbf{h}, \Theta) $ and $ p(\mathbf{h} \mid \mathbf{v}, \Theta) $, see Figure~ and Section~\ref{sec:Gibbs}.
+	The second term is perfect fit for Gibbs sampling, since we can $ p(\mathbf{v}, \mathbf{h} \mid \Theta) $ as a 2D vector and generating the samples by jumping in a Markov Chain with the transformation probability matrix $ p(\mathbf{v} \mid \mathbf{h}, \Theta) $ and $ p(\mathbf{h} \mid \mathbf{v}, \Theta) $, see Figure~\ref{fig:gibbs} and Section~\ref{sec:Gibbs}.
 	So, with the given data $ \mathbf{v}_0 $ and the sampling data $ \mathbf{h}_0 $, we have the initial data point in this Markov Chain,  ($ \mathbf{v}_0, \mathbf{h}_0$).
 	The transformation starts from the axis of $ \mathbf{v} $, then we get $ \mathbf{v}_1 \sim p( \mathbf{v} \mid \mathbf{h}_0, \Theta) $.
 	It follows the next axis $ \mathbf{h} $, similarly we get $ \mathbf{h}_1 \sim p( \mathbf{h} \mid \mathbf{v}_1, \Theta) $.
@@ -408,11 +413,66 @@
 	\end{algorithm}
 	\begin{figure}[hbt]
 		\centering
-		\includegraphics[width=0.6\textwidth]{img/gibbs.png}
+		\includegraphics[width=0.5\textwidth]{img/gibbs.png}
 		\caption{Gibbs sampling on RBM.}
 		\label{fig:gibbs}
+	\end{figure}	
+\subsection{$CD_1$ vs $CD_{\infty}$}
+\label{sec:cd1}
+The common validation of trained RBMs is to measure the reconstruction error over the training dataset.
+To be precise, the reconstruction of some training vision data $ v_0 $ is one step Gibbs sampling (from $ v_0 $ via $ (v_0, h_0 )$ to $ (v_1, h_0 )$) away from it, $ v_1 $.
+We use the MNIST dataset as both the training and testing data.
+The size of every image in MNIST is $28 \times 28$, and every pixel is with grey scale from 0 to 255.
+To make it fit the binary status of the neurons, the pixels whose values over 50 are set as 1 and the others are set to 0, see Figure~\ref{Fig:5} as an example.
+This RBM is with $28 \times 28$ visible units and 500 hidden units.
+If we look at the measured results in Figure~\ref{Fig:error}, it is not surprise to see there is no obvious difference on the reconstruction error among $CD_1$, $CD_2$ and $CD_{1000}$.
+
+	\begin{figure}[hbt]
+		\centering
+		\includegraphics[width=0.5\textwidth]{img/test.pdf}
+		\caption{An example of binary image in MNIST.}
+		\label{Fig:5}
 	\end{figure}
-\subsection{Case Study on Deep Belief Network~\cite{hinton2006fast}}
+
+The objective function, Equation~(\ref{equ:cdk}), targets at maximise the log likelihood of data and model.
+In another word, the samples generated from the converged model should have the same distribution as the training dataset.
+However, lower reconstruction error means smaller changes over the first step of Gibbs sampling, where only one sample generated from the model.
+It is impossible to compare two distributions with merely single data.
+
+Thus, we have done another simple test to generate long sample sequence using Gibbs sampling.
+In order to measure the distribution in a very naive way, we calculated the mean for every pixel in the training data and the generated sample sequence.
+Then, the euclidean distance between the two matrix is given to roughly compare the distribution.
+
+\begin{figure}[hbt]
+  \centering
+  \subfloat[Reconstruction error over training images, plotted only for the first $20,000$ searching steps.]{
+    \includegraphics[width=0.4\textwidth]{img/train_short.pdf}
+  }
+  \subfloat[Reconstruction error over training images]{
+      \includegraphics[width=0.4\textwidth]{img/train_long.pdf}
+  }\\
+ \subfloat[Reconstruction error over testing images, plotted only for the first $20,000$ searching steps.]{
+     \includegraphics[width=0.4\textwidth]{img/test_short.pdf}
+   }
+   \subfloat[Reconstruction error over testing images]{
+       \includegraphics[width=0.4\textwidth]{img/test_long.pdf}
+   }
+  \caption{
+  Reconstruction error.
+  Due to the high cost of training with $CD_{1000}$, we stopped at $6,000$ update steps.
+  }
+  \label{Fig:error}
+\end{figure}
+
+In Figure~\ref{Fig:dis} we can see the obvious approximation with $CD_{1000}$.
+There are 10 trails experimented for 5 configuration on sample size. 
+	\begin{figure}[hbt]
+		\centering
+		\includegraphics[width=0.7\textwidth]{img/distr.pdf}
+		\caption{Euclidean distance between the training data and the generated Gibbs sampling sequence on the mean value only.} 
+		\label{Fig:dis}
+	\end{figure}
+\section{Deep Belief Network~\cite{hinton2006fast}}
 
 \section{Spiking RBM\cite{neftci2013event}}
 
