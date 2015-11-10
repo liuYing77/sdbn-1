@@ -1,6 +1,6 @@
 '''
 Typical usage:
-python -m code.1layerRBM.recon_error /home/liuq/Pictures/theta/5420_b50_epoc350_pcd.npy
+python -m code.1layerRBM.recon_error /home/liuq/apt/2ndYear/sDBN/theta/5420_b2_epoc10_cd.npy
 '''
 import sys
 import random
