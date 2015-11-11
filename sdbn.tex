@@ -472,8 +472,33 @@ There are 10 trails experimented for 5 configuration on sample size.
 		\caption{Euclidean distance between the training data and the generated Gibbs sampling sequence on the mean value only.} 
 		\label{Fig:dis}
 	\end{figure}
-\section{Deep Belief Network~\cite{hinton2006fast}}
-
+\section{Deep Belief Network}
+The Deep Belief Network (DBN) model is proposed by Hinton et al.~\cite{hinton2006fast} in 2006, in which the top RBM (top two layers) works as an associative memory where the lower layers form a belief net with directed connections, see Figure~\ref{Fig:5}. \textcolor{red}{Need to redraw}
+The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the following:
+	\begin{itemize}
+	  \item \textbf{is a probabilistic model}, which not only presents $p(output \mid input)$ but also $p(input \mid output)$.
+	  The deep layers work as complementary prior and solves the explain away problem in a belief net.
+	  \textcolor{red}{Probably we need to start from explaining belief net and then the explain away problem as well as the complementary prior, and finally the probabilistic representations of DBN. }  
+	  \item \textbf{works bidirectionally}, both down-top (recognition pass) and top-down (generative pass).
+	  The generative model is able to reconstruct the input thus to interpret the hidden representations visibly.
+	  \item \textbf{is trained with fast and unsupervised learning algorithm}.
+	  As stated above RBM is trained in an unsupervised way with fast training algorithm targeting at CD.
+	  Notice that although the lower layers are not RBMs, they can be pre-trained as RBMs.
+%	  \textcolor{red}{??? During fine-tuning, every layer generates (reconstructs) its input with a probability of $p(input \mid output)$, the error between the input and the reconstruction makes the tuning on the generative pass exactly like back propagation (BP) but with only one layer.
+%	  The same applies to the recognition pass}.
+	  It also works with labelled data where the generative model presents both the labels and the data. 
+	\end{itemize}
+	\begin{figure}[hbt]
+		\centering
+		\includegraphics[width=0.7\textwidth]{img/dbn.jpg}
+		\caption{A DBN contains undirected RBM on the top as an associative memory and directed belief net on the lower layers.} 
+		\label{Fig:dbn}
+	\end{figure}
+	\subsection{A Probabilistic Representation}
+	\subsection{Greedy Algorithm}
+	\subsection{Case Study on Labelled Data}
+	There is no unified training methods for DBN, here we reproduce the same example and training algorithm from the paper~\cite{hinton2006fast} in order to apply greedy training on lower layers, $CD_1$ on the top associative memory and fine-tuning bidirectionally.
+	\subsection{Discussions on DBN Structure and Learning}
 \section{Spiking RBM\cite{neftci2013event}}
 
 \begin{appendices}
