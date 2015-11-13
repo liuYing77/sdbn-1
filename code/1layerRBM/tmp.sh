@@ -1,0 +1,14 @@
+#!/bin/bash
+cd ../../
+
+for file in /home/liuq/apt/2ndYear/sDBN/theta/*_e_*.npy
+do
+    echo $file
+    newf=${file:0:45}epoc${file:47}
+    mv $file $newf
+    python -m code.1layerRBM.recon_error $newf >> log.txt
+done
+
+
+
+
