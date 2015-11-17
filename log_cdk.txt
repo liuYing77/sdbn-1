@@ -1,0 +1,4 @@
+/home/liuq/apt/2ndYear/sDBN/cdk/*.npy
+/home/liuq/apt/2ndYear/sDBN/cdk/*.npy
+/home/liuq/apt/2ndYear/sDBN/cdk/*.npy
+/home/liuq/apt/2ndYear/sDBN/cdk/*.npy
