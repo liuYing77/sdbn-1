@@ -368,6 +368,7 @@
 	\end{equation}	 
 	
 \subsection{CD with 1-step Reconstruction}
+\label{sec:cd}
 	Both terms of the derivatives of the average log-likelihood function (Equation~(\ref{equ:RBM})) are intractable, so generative models for sampling is needed.
 	As stated in Section~\ref{sec:CD}, for each iteration only one sample is generated.
 	
@@ -390,7 +391,7 @@
 		\label{alg:learn}
 		\begin{algorithmic}
 %			\State Initialisation $\mathbf{x}_0 = [x_0(1),x_0(2),...,x_0(M)]$,  \Comment{Random initialise $\mathbf{x}_0$}
-			\For{$t=1, 2, ..., K$} \Comment{K number of training data $ \mathbf{V} $, 1 data each iteartion}
+			\For{$t=1, 2, ..., K$} \Comment{K number of training data $ \mathbf{V} $, 1 data each iteration}
 %			\For{$k=1, 2, ..., M$}
 			\State $ \mathbf{h}_t \sim p( \mathbf{h} \mid \mathbf{v}_t, \Theta) $
 			\Comment{Generate $ \mathbf{h}_t $ given $ \mathbf{v}_t $ }
@@ -496,9 +497,72 @@ The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the f
 	\end{figure}
 	\subsection{A Probabilistic Representation}
 	\subsection{Greedy Algorithm}
+		From the piratical view, the greedy algorithm allows each RBM model in the layer-wise sequence to receive a transformed representation of the data.
+		Especially when applying the greedy algorithm to layered dimension-reduced RBMs, the data is presented with lower dimension along the neural layers.
+		For each RBM, the input vector of the visual units are transformed non-linearly as output vector of the hidden layer which is considered to be the input for the next RBM.
+		
+		From the probability view, the layered RBMs are a generative model.
+		It is guaranteed that learning the weights layer-wise bottom-up using the maximum likelihood of the Energy function of RBMs the bound on the log probability of the data will never decrease. 
+	\subsection{Fine Tuning}
+		In practice, as stated above in Section~\ref{sec:cd} the RBM is trained with Contrastive Divergence.
+		The \textcolor{red}{altered objective function} using CD makes the guarantee of non-decreasing log probability void, however extra layers still guarantee the improvement of imperfect models \textcolor{red}{ref???}.
+		
+		Layer-wise learning is efficient but not optimal, since the weights of the higher layers are changed, e.g. the prior of the inference procedure for the lower layers are altered to the optimal.
+		Thus a fine tuning is required to tune the network as a whole.
+		And the weights of the lower layers are ``untied'' to train the undirected connections.
+		The bottom-up pass is presented by the recognition connections while the top-down pass by the generative connections.
+		
+		The standard and ``Contrastive'' wake-sleep algorithm are described in Algorithm~\ref{alg:fine}, after the sequentially layered greedy learning on all the RBM layers.
+		\begin{algorithm}[tdh!]
+		\caption{Fine Tuning on Deep Belief Network}
+		\label{alg:fine}
+			\begin{algorithmic}
+%			\State Initialisation $\mathbf{x}_0 = [x_0(1),x_0(2),...,x_0(M)]$,  \Comment{Random initialise $\mathbf{x}_0$}
+			\For{$t=1, 2, ..., K$} \Comment{K number of training data $ \mathbf{V} $, 1 data each iteration}
+			\State Wake Phase, Up-Pass:
+				\For{each RBM layer (besides ths associate memory)}
+					\State $ \mathbf{h}_t \sim p( \mathbf{h} \mid \mathbf{v}_t, \Theta) $
+					\Comment{Generate $ \mathbf{h}_t $ given $ \mathbf{v}_t $ }
+					\State $ \mathbf{v}_{t+1} \sim p( \mathbf{v} \mid \mathbf{h}_{t}, \Theta) $
+					\Comment{Generate $ \mathbf{v}_{t+1} $ on v axis using Gibbs sampling }
+					\State $ \Delta W_{ij} = \eta h_{t,j} (v_{t+1,i} - v_{t,i}) $
+					\Comment Update generative weight
+					\State $ \Delta b_{i} = \eta (v_{t+1,i} - v_{t,i}) $
+					\Comment Update down-pass bias
+				\EndFor
+			\State $CD_1$ training on top layer (Optional):
+			\Comment Same as Algorithm~\ref{app:RBM}
+			\State Sleep Phase, Down-Pass:
+				\For{each RBM layer (besides ths associate memory)}
+				\Comment{Seeing the RBM up-side-down}
+					\State $ \mathbf{h}_t \sim p( \mathbf{h} \mid \mathbf{v}_t, \Theta) $
+					\Comment{Generate $ \mathbf{h}_t $ given $ \mathbf{v}_t $ }
+					\State $ \mathbf{v}_{t+1} \sim p( \mathbf{v} \mid \mathbf{h}_{t}, \Theta) $
+					\Comment{Generate $ \mathbf{v}_{t+1} $ on v axis using Gibbs sampling }
+					\State $ \Delta W_{ji} = \eta h_{t,i} (v_{t+1,j} - v_{t,j}) $
+					\Comment Update recognition weight
+					\State $ \Delta b_{j} = \eta (v_{t+1,j} - v_{t,j}) $
+					\Comment Update up-pass bias
+				\EndFor			
+			
+			\EndFor
+			\end{algorithmic}
+		\end{algorithm}				
+		
 	\subsection{Case Study on Labelled Data}
-	There is no unified training methods for DBN, here we reproduce the same example and training algorithm from the paper~\cite{hinton2006fast} in order to apply greedy training on lower layers, $CD_1$ on the top associative memory and fine-tuning bidirectionally.
-	\subsection{Discussions on DBN Structure and Learning}
+	There is no unified training methods for DBN, here we reproduce the same example and training algorithm from the paper~\cite{hinton2006fast} in order to apply greedy training on all the RBM layers, and fine-tuning bidirectionally, see Algorithm~\ref{alg:fine}.
+	The only difference or addition is the label layer (10 neurons) locating on the top of the network, see Figure~\textcolor{red}{need redraw}.
+	During training the label units can be appended with the top hidden layer, which is the pen layer.
+	After tuning, the combined weights can be split up into pen-top and label-top connections.
+	
+	Description of the epocs, and the result.
+	
+	\subsection{Discussions on Learning}
+	Discussions on mathematical explanation on difference of wake-sleep and contrastive wake-sleep algorithms.
+	
+	Layer-wise fine-tuning only applies learning on one direction of connections, leaving the other direction unchanged until all the above layers tuned, which results in unbalanced tuning.
+	
+	penalty, momentum, different learning rate, and etc.
 \section{Spiking RBM\cite{neftci2013event}}
 
 \begin{appendices}

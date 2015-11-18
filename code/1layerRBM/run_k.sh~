@@ -1,7 +1,7 @@
 #!/bin/bash
 cd ../../
 
-for i in `seq 0 542 1`;
+for i in `seq 0 5 1085`;
 do
     python -m code.1layerRBM.cd_k 1 1000 542 cdk $i
 done

@@ -2,3 +2,9 @@
 /home/liuq/apt/2ndYear/sDBN/cdk/*.npy
 /home/liuq/apt/2ndYear/sDBN/cdk/*.npy
 /home/liuq/apt/2ndYear/sDBN/cdk/*.npy
+/home/liuq/apt/2ndYear/sDBN/cdk/5420_b1000_epoc00005_cdk.npy
+123108.0
+754363.0
+/home/liuq/apt/2ndYear/sDBN/cdk/5420_b1000_epoc00010_cdk.npy
+123049.0
+754195.0
