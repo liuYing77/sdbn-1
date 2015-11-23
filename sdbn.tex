@@ -441,18 +441,19 @@ However, lower reconstruction error means smaller changes over the first step of
 It is impossible to compare two distributions with merely single data.
 
 Thus, we have done another simple test to generate long sample sequence using Gibbs sampling.
-In order to measure the distribution in a very naive way, we calculated the mean for every pixel in the training data and the generated sample sequence.
-Then, the euclidean distance between the two matrix is given to roughly compare the distribution.
+In order to measure the distribution in a very naive way, the cluster centre of the training data is found by k-means and we calculated the Euclidean distance between a sample and the cluster centre.
+The distribution of the Euclidean distance of the training data is shown in Figure~\ref{Fig:dis}.
+The distribution is well presented by $CD_{1000}$, which confirms the objective function~\ref{equ:RBM}.
 
 \begin{figure}[hbt]
   \centering
-  \subfloat[Reconstruction error over training images, plotted only for the first $20,000$ searching steps.]{
+  \subfloat[Reconstruction error over training images, plotted only for the first $8,000$ searching steps.]{
     \includegraphics[width=0.4\textwidth]{img/train_short.pdf}
   }
   \subfloat[Reconstruction error over training images]{
       \includegraphics[width=0.4\textwidth]{img/train_long.pdf}
   }\\
- \subfloat[Reconstruction error over testing images, plotted only for the first $20,000$ searching steps.]{
+ \subfloat[Reconstruction error over testing images, plotted only for the first $8,000$ searching steps.]{
      \includegraphics[width=0.4\textwidth]{img/test_short.pdf}
    }
    \subfloat[Reconstruction error over testing images]{
@@ -465,16 +466,117 @@ Then, the euclidean distance between the two matrix is given to roughly compare 
   \label{Fig:error}
 \end{figure}
 
-In Figure~\ref{Fig:dis} we can see the obvious approximation with $CD_{1000}$.
-There are 10 trails experimented for 5 configuration on sample size. 
-	\begin{figure}[hbt]
-		\centering
-		\includegraphics[width=0.7\textwidth]{img/distr.pdf}
-		\caption{Euclidean distance between the training data and the generated Gibbs sampling sequence on the mean value only.} 
-		\label{Fig:dis}
-	\end{figure}
+\begin{figure}[hbt]
+  \centering
+  \subfloat[Original distribution of the training data.]{
+    \includegraphics[width=0.2\textwidth]{img/train_dist.pdf}
+  }
+  \subfloat[$5,420$ steps of $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/cd1_1.pdf}
+  }
+  \subfloat[$ 27,100 $ steps of $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/cd1_51.pdf}
+  }
+  \subfloat[$ 48,780 $ steps of $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/cd1_91.pdf}
+  }
+  \subfloat[Searching path of para $\mu$ and $\sigma$.]{
+    \includegraphics[width=0.2\textwidth]{img/cd1_para.pdf}
+  }\\
+  \subfloat[$600$ steps of K times $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/kcd_100.pdf}
+  }
+  \subfloat[$5,400$ steps of K times $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/kcd_900.pdf}
+  }
+  \subfloat[$ 22,764 $ steps of K times $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/kcd_3794.pdf}
+  }
+  \subfloat[$ 48,780 $ steps of K times $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/kcd_100.pdf}
+  }
+  \subfloat[Searching path of para $\mu$ and $\sigma$.]{
+    \includegraphics[width=0.2\textwidth]{img/kcd_long_para.pdf}
+  }\\
+  \subfloat[$600$ steps of$CD_{1000}$.]{
+    \includegraphics[width=0.2\textwidth]{img/cdk_100.pdf}
+  }
+  \subfloat[$3,000$ steps of $CD_{1000}$.]{
+    \includegraphics[width=0.2\textwidth]{img/cdk_500.pdf}
+  }
+  \subfloat[$3,600$ steps of $CD_{1000}$.]{
+    \includegraphics[width=0.2\textwidth]{img/cdk_600.pdf}
+  }
+  \subfloat[$5,400 $ steps of $CD_{1000}$.]{
+    \includegraphics[width=0.2\textwidth]{img/cdk_900.pdf}
+  }
+  \subfloat[Searching path of para $\mu$ and $\sigma$.]{
+    \includegraphics[width=0.2\textwidth]{img/cdk_para.pdf}
+  }
+  \caption{
+  Distribution of the Euclidean distance between the generated Gibbs samples and the cluster centre.
+  }
+  \label{Fig:dis}
+\end{figure}
+%In Figure~\ref{Fig:dis} we can see the obvious approximation with $CD_{1000}$.
+%There are 10 trails experimented for 5 configuration on sample size. 
+%	\begin{figure}[hbt]
+%		\centering
+%		\includegraphics[width=0.7\textwidth]{img/distr.pdf}
+%		\caption{Euclidean distance between the training data and the generated Gibbs sampling sequence on the mean value only.} 
+%		\label{Fig:dis}
+%	\end{figure}
+
+The previous experiment is a rough approximation of distribution which maps the training data points to a 1-D Euclidean distance.
+Thus we then take another experiment with given distribution (Normal) to estimate the reconstruction capability and the distribution representation.
+The training data consists of $1,000$ digits generated from a normal distribution ranging from 0 to 9.
+A digit K is represented by a 10-D binary vector, with the K-th bit turning on (1) and the other bits are 0.
+The reconstruction only succeeds when the 1-step Gibbs sample is the same with the input vector.
+The correct rate is only 4.5\% for $CD_{1}$ and xx\% for $CD_{1000}$.
+Then we continue to sample $1,000$ vectors along the Markov Chain, thus to compare the distribution with the original given normal distribution.
+The results can be derived from Figure~\ref{Fig:vector}.
+\begin{figure}[hbt]
+  \centering
+  \subfloat[Original normal distribution of the training data.]{
+    \includegraphics[width=0.2\textwidth]{img/train_data_v.pdf}
+  }\\
+  \subfloat[$1,000$ steps of $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_1000.pdf}
+  }
+  \subfloat[$3,000$ steps of $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_3000.pdf}
+  }
+  \subfloat[$5,000$ steps of $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_5000.pdf}
+  }
+  \subfloat[$7,000$ steps of $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_7000.pdf}
+  }
+  \subfloat[$9,000$ steps of $CD_1$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_9000.pdf}
+  }\\
+  \subfloat[$1,000$ steps of $CD_{1000}$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cdk_1000.pdf}
+  }
+  \subfloat[$3,000$ steps of $CD_{1000}$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_3000.pdf}
+  }
+  \subfloat[$5,000$ steps of $CD_{1000}$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_5000.pdf}
+  }
+  \subfloat[$7,000$ steps of $CD_{1000}$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_7000.pdf}
+  }
+  \subfloat[$9,000$ steps of $CD_{1000}$.]{
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_9000.pdf}
+  }\\
+  \caption{
+  Distribution of the Gibbs samples.
+  }
+  \label{Fig:vector}
+\end{figure}
 \section{Deep Belief Network}
-The Deep Belief Network (DBN) model is proposed by Hinton et al.~\cite{hinton2006fast} in 2006, in which the top RBM (top two layers) works as an associative memory where the lower layers form a belief net with directed connections, see Figure~\ref{Fig:5}. \textcolor{red}{Need to redraw}
+The Deep Belief Network (DBN) model is proposed by Hinton et al.~\cite{hinton2006fast} in 2006, in which the top RBM (top two layers) works as an associative memory where the lower layers form a belief net with directed connections, see Figure~\ref{Fig:dbn}. \textcolor{red}{(Need to redraw)}
 The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the following:
 	\begin{itemize}
 	  \item \textbf{is a probabilistic model}, which not only presents $p(output \mid input)$ but also $p(input \mid output)$.
@@ -490,11 +592,19 @@ The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the f
 	  It also works with labelled data where the generative model presents both the labels and the data. 
 	\end{itemize}
 	\begin{figure}[hbt]
-		\centering
-		\includegraphics[width=0.7\textwidth]{img/dbn.jpg}
-		\caption{A DBN contains undirected RBM on the top as an associative memory and directed belief net on the lower layers.} 
-		\label{Fig:dbn}
+	  \centering
+	  \subfloat[A DBN contains undirected RBM on the top and directed belief net on the lower layers~\cite{hinton2006fast}.]{
+	    \includegraphics[width=0.42\textwidth]{img/dbn.jpg}
+	  }
+	  \subfloat[Deep Belief Network framework.]{
+	      \includegraphics[width=0.42\textwidth]{img/dis.jpg}
+	  }
+	  \caption{
+	  Structure of Deep Belief Network~\cite{arel2010deep}.
+	  }
+	  \label{Fig:dbn}
 	\end{figure}
+	
 	\subsection{A Probabilistic Representation}
 		Why the deeper the better.
 %		堆叠的RBM并不是一个多层RBM模型，而是a deep sigmoid belief net深度sigmoid置信网
@@ -555,12 +665,18 @@ The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the f
 		
 	\subsection{Case Study on Labelled Data}
 	There is no unified training methods for DBN, here we reproduce the same example and training algorithm from the paper~\cite{hinton2006fast} in order to apply greedy training on all the RBM layers, and fine-tuning bidirectionally, see Algorithm~\ref{alg:fine}.
-	The only difference or addition is the label layer (10 neurons) locating on the top of the network, see Figure~\textcolor{red}{need redraw}.
+	The only difference or addition is the label layer (10 neurons) locating on the top of the network, see Figure~\ref{Fig:case}.
 	During training the label units can be appended with the top hidden layer, which is the pen layer.
 	After tuning, the combined weights can be split up into pen-top and label-top connections.
+	For $60,000$ training data, we have experimented two tests with 1 epoc and 40 epocs respectively.
+	The recognition and error rates are: epoc 1 (65.5\%, 14.11\%) and epoc 40 (70.51\%, 5.47\%). 
 	
-	Description of the epocs, and the result.
-	
+	\begin{figure}[hbt]
+			\centering
+			\includegraphics[width=0.5\textwidth]{img/DBN.pdf}
+			\caption{A DBN contains undirected RBM on the top as an associative memory and directed belief net on the lower layers.} 
+			\label{Fig:case}
+	\end{figure}
 	\subsection{Discussions on Learning}
 	Discussions on mathematical explanation on difference of wake-sleep and contrastive wake-sleep algorithms.
 	

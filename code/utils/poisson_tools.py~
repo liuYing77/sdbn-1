@@ -30,7 +30,7 @@ def get_train_data():
     train_x = np.reshape(train_x, (list_size,image_hight*image_width))
     f.close()
     
-    file_name = dir_path +  = 'train-labels.idx1-ubyte'
+    file_name = dir_path + 'train-labels.idx1-ubyte'
     f = open(file_name, "rb")
     magic_number, list_size = np.fromfile(f, dtype='>i4', count=2)
     train_y = np.fromfile(f, dtype='>u1', count=list_size*image_hight*image_width)
