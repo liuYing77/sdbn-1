@@ -493,7 +493,7 @@ The distribution is well presented by $CD_{1000}$, which confirms the objective 
     \includegraphics[width=0.2\textwidth]{img/kcd_3794.pdf}
   }
   \subfloat[$ 48,780 $ steps of K times $CD_1$.]{
-    \includegraphics[width=0.2\textwidth]{img/kcd_100.pdf}
+    \includegraphics[width=0.2\textwidth]{img/kcd_18428.pdf}
   }
   \subfloat[Searching path of para $\mu$ and $\sigma$.]{
     \includegraphics[width=0.2\textwidth]{img/kcd_long_para.pdf}
@@ -532,7 +532,7 @@ Thus we then take another experiment with given distribution (Normal) to estimat
 The training data consists of $1,000$ digits generated from a normal distribution ranging from 0 to 9.
 A digit K is represented by a 10-D binary vector, with the K-th bit turning on (1) and the other bits are 0.
 The reconstruction only succeeds when the 1-step Gibbs sample is the same with the input vector.
-The correct rate is only 4.5\% for $CD_{1}$ and xx\% for $CD_{1000}$.
+The correct rate is only 4.5\% for $CD_{1}$ and 6.6\% for $CD_{1000}$.
 Then we continue to sample $1,000$ vectors along the Markov Chain, thus to compare the distribution with the original given normal distribution.
 The results can be derived from Figure~\ref{Fig:vector}.
 \begin{figure}[hbt]
@@ -559,16 +559,16 @@ The results can be derived from Figure~\ref{Fig:vector}.
     \includegraphics[width=0.2\textwidth]{img/gibbs_cdk_1000.pdf}
   }
   \subfloat[$3,000$ steps of $CD_{1000}$.]{
-    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_3000.pdf}
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cdk_3000.pdf}
   }
   \subfloat[$5,000$ steps of $CD_{1000}$.]{
-    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_5000.pdf}
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cdk_5000.pdf}
   }
   \subfloat[$7,000$ steps of $CD_{1000}$.]{
-    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_7000.pdf}
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cdk_7000.pdf}
   }
   \subfloat[$9,000$ steps of $CD_{1000}$.]{
-    \includegraphics[width=0.2\textwidth]{img/gibbs_cd1_9000.pdf}
+    \includegraphics[width=0.2\textwidth]{img/gibbs_cdk_9000.pdf}
   }\\
   \caption{
   Distribution of the Gibbs samples.
