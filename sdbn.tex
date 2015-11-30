@@ -531,10 +531,19 @@ The previous experiment is a rough approximation of distribution which maps the 
 Thus we then take another experiment with given distribution (Normal) to estimate the reconstruction capability and the distribution representation.
 The training data consists of $1,000$ digits generated from a normal distribution ranging from 0 to 9.
 A digit K is represented by a 10-D binary vector, with the K-th bit turning on (1) and the other bits are 0.
-The reconstruction only succeeds when the 1-step Gibbs sample is the same with the input vector.
-The correct rate is only 4.5\% for $CD_{1}$ and 6.6\% for $CD_{1000}$.
+%The reconstruction only succeeds when the 1-step Gibbs sample is the same with the input vector.
+%The correct rate is only 4.5\% for $CD_{1}$ and 6.6\% for $CD_{1000}$.
+To gain the reconstruction error, the same test is applied to the experiment.
+The error rate is counted pixel-wise, and with the increasing update steps the reconstruction error drops to a similar range for both $CD_1$ and $CD_K$, see Figure~\ref{Fig:disRecon}.
 Then we continue to sample $1,000$ vectors along the Markov Chain, thus to compare the distribution with the original given normal distribution.
 The results can be derived from Figure~\ref{Fig:vector}.
+\begin{figure}[hbt]
+				\centering
+				\includegraphics[width=0.5\textwidth]{img/ReconError.pdf}
+				\caption{Reconstruction error over training images. } 
+				\label{Fig:disRecon}
+\end{figure}
+
 \begin{figure}[hbt]
   \centering
   \subfloat[Original normal distribution of the training data.]{
@@ -666,17 +675,26 @@ The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the f
 	\subsection{Case Study on Labelled Data}
 	There is no unified training methods for DBN, here we reproduce the same example and training algorithm from the paper~\cite{hinton2006fast} in order to apply greedy training on all the RBM layers, and fine-tuning bidirectionally, see Algorithm~\ref{alg:fine}.
 	The only difference or addition is the label layer (10 neurons) locating on the top of the network, see Figure~\ref{Fig:case}.
+		\begin{figure}[hbt]
+				\centering
+				\includegraphics[width=0.5\textwidth]{img/DBN.pdf}
+				\caption{A DBN contains undirected RBM on the top as an associative memory and directed belief net on the lower layers.} 
+				\label{Fig:case}
+		\end{figure}
+		
 	During training the label units can be appended with the top hidden layer, which is the pen layer.
 	After tuning, the combined weights can be split up into pen-top and label-top connections.
-	For $60,000$ training data, we have experimented two tests with 1 epoc and 40 epocs respectively.
-	The recognition and error rates are: epoc 1 (65.5\%, 14.11\%) and epoc 40 (70.51\%, 5.47\%). 
+	When testing, the neurons of labelling layer are changed to ``soft-max'' neurons, thus the neuron with the highest possibility to be activated presents the classification result.
+	We have experimented the same tests by training 1 to 9 epochs of all the training data.
+	For the test on the MNIST testing data, the error rate is shown in Figure~\ref{Fig:class}.
+%	The recognition and error rates are: epoc 1 (65.5\%, 14.11\%) and epoc 40 (70.51\%, 5.47\%). 
+		\begin{figure}[hbt]
+				\centering
+				\includegraphics[width=0.5\textwidth]{img/MNISTerror.pdf}
+				\caption{Classification error for training epochs of 1 to 9 testing on the MNIST testing data.} 
+				\label{Fig:class}
+		\end{figure}	
 	
-	\begin{figure}[hbt]
-			\centering
-			\includegraphics[width=0.5\textwidth]{img/DBN.pdf}
-			\caption{A DBN contains undirected RBM on the top as an associative memory and directed belief net on the lower layers.} 
-			\label{Fig:case}
-	\end{figure}
 	\subsection{Discussions on Learning}
 	Discussions on mathematical explanation on difference of wake-sleep and contrastive wake-sleep algorithms.
 	
