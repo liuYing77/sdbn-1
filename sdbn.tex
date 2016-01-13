@@ -37,13 +37,19 @@
 	\thispagestyle{empty}
 
 \begin{abstract}
-	In order to implement training of Spiking Deep~Belief~Networks~(SDBNs) on SpiNNaker, this paper studies the layer-by-layer training of spiking Restricted~Boltzmann~Machine~(RBM) of a DBN.
-	The study starts from understanding the original problem, Products of Experts~(PoE), which was solved by using Contrastive~Divergence~(CD).
-	It involves utilising Markov~Chain~Monte~Carlo~(MCMC) sampling to present the distribution of a certain untraceable high-dimensional probability model function, e.g. PoE.
-	Among these sampling algorithms, Gibbs method is introduced and used in PoE problem.
-	Instead of minimising the original objective function of Kullback-Leibler divergence, the contrastive divergence is exploited to solve PoE.
-	Then the study continues on applying CD to RBM.
-	Finally, on-line learning methods only spiking neurons used are explored to train spiking RBM.
+	In order to implement training and testing of Spiking Deep~Belief~Networks~(SDBNs) on-line, this paper studied:
+	\begin{itemize}
+		\item \textit{Contrastive Divergence.}
+		The study starts from understanding the original problem, Products of Experts~(PoE), which was solved by using Contrastive~Divergence~(CD).
+		It involves utilising Markov~Chain~Monte~Carlo~(MCMC) sampling to present the distribution of a certain untraceable high-dimensional probability model function, e.g. PoE.
+		Among these sampling algorithms, Gibbs method is introduced and used in high dimensional problems.
+		Instead of minimising the original objective function of Kullback-Leibler divergence, the contrastive divergence is exploited to solve PoE.
+		\item \textit{Restricted Boltzmann Machine (RBM). }
+		Then the study continues on applying Gibbs sampling and CD to RBM, which builds the foundation of the light RBM training.
+		\item \textit{Deep Belief Network.} 
+		The greedy algorithm on training layered RBMs and the fine training on the whole DBN are studied.
+	\end{itemize}
+	Next, the study will carry on to on-line learning methods which only applies to spiking neurons for training spiking RBM and DBN.
 \end{abstract}
 
 \section{Why CD(Contrastive Divergence)?\cite{hinton2002training,woodfordnotes}}
@@ -585,12 +591,13 @@ The results can be derived from Figure~\ref{Fig:vector}.
   \label{Fig:vector}
 \end{figure}
 \section{Deep Belief Network}
-The Deep Belief Network (DBN) model is proposed by Hinton et al.~\cite{hinton2006fast} in 2006, in which the top RBM (top two layers) works as an associative memory where the lower layers form a belief net with directed connections, see Figure~\ref{Fig:dbn}. \textcolor{red}{(Need to redraw)}
+The Deep Belief Network (DBN) model is proposed by Hinton et al.~\cite{hinton2006fast} in 2006, in which the top RBM (top two layers) works as an associative memory where the lower layers form a belief net with directed connections, see Figure~\ref{Fig:dbn}. % \textcolor{red}{(Need to redraw)}
 The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the following:
 	\begin{itemize}
 	  \item \textbf{is a probabilistic model}, which not only presents $p(output \mid input)$ but also $p(input \mid output)$.
 	  The deep layers work as complementary prior and solves the explain away problem in a belief net.
-	  \textcolor{red}{Probably we need to start from explaining belief net and then the explain away problem as well as the complementary prior, and finally the probabilistic representations of DBN. }  
+%	  \textcolor{red}{Probably we need to start from explaining belief net and then the explain away problem as well as the complementary prior, and finally the probabilistic representations of DBN. } 
+		Probably we need to start from explaining belief net and then the explain away problem as well as the complementary prior, and finally the probabilistic representations of DBN. 
 	  \item \textbf{works bidirectionally}, both down-top (recognition pass) and top-down (generative pass).
 	  The generative model is able to reconstruct the input thus to interpret the hidden representations visibly.
 	  \item \textbf{is trained with fast and unsupervised learning algorithm}.
@@ -628,8 +635,8 @@ The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the f
 		It is guaranteed that learning the weights layer-wise bottom-up using the maximum likelihood of the Energy function of RBMs the bound on the log probability of the data will never decrease. 
 	\subsection{Fine Tuning}
 		In practice, as stated above in Section~\ref{sec:cd} the RBM is trained with Contrastive Divergence.
-		The \textcolor{red}{altered objective function} using CD makes the guarantee of non-decreasing log probability void, however extra layers still guarantee the improvement of imperfect models \textcolor{red}{ref???}.
-		
+%		The \textcolor{red}{altered objective function} using CD makes the guarantee of non-decreasing log probability void, however extra layers still guarantee the improvement of imperfect models \textcolor{red}{ref???}.
+			The altered objective function using CD makes the guarantee of non-decreasing log probability void, however extra layers still guarantee the improvement of imperfect models.
 		Layer-wise learning is efficient but not optimal, since the weights of the higher layers are changed, e.g. the prior of the inference procedure for the lower layers are altered to the optimal.
 		Thus a fine tuning is required to tune the network as a whole.
 		And the weights of the lower layers are ``untied'' to train the undirected connections.
