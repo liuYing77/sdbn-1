@@ -1,0 +1,2 @@
+#source ~/apt/spin_1408/virtualenv/bin/activate
+source ~/env/nest_pynn0.7/bin/activate

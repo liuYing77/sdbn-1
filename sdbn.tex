@@ -300,11 +300,13 @@
 		= - \left \langle \dfrac{\partial \log f(\mathbf{d} \mid \Theta)}{\partial \theta}\right \rangle_{(\mathbf{d}_1, \mathbf{d}_2, ..., \mathbf{d}_k) } + \left \langle \dfrac{\partial \log f(\mathbf{c} \mid \Theta)}{\partial \theta}\right \rangle_{(\mathbf{c}_1, \mathbf{c}_2, ..., \mathbf{c}_k) \sim p(\mathbf{x} \mid \Theta)}.
 	\end{equation}
 	Since the searching step $ \eta $ is very small, the derivatives of points in a small area can be seen as the same.
-	The step made for a single $ CD_{k} $ can be approximated by summation of $ k $ steps of $ CD_{1} $ as long as the searching does not go far.
-	Otherwise the searching path may follow some direction for accumulated steps away from the original area, thus significantly reduces the training time.
+%	The step made for a single $ CD_{k} $ can be approximated by summation of $ k $ steps of $ CD_{1} $ as long as the searching does not go far.
+%	Otherwise the searching path may follow some direction for accumulated steps away from the original area, thus significantly reduces the training time.
 	
-	Although there is reasonable explanation on using $CD_1$ for parameter space searching, arguments exist over whether the search converge to the same maxima/minima as $CD_\infty$.
-	As an initial exploration over the problem we tested some experiments on Section~\ref{sec:cd1}. 
+	\subsection{Discussion}
+		Although there is practical explanation on using $CD_1$ for parameter space searching, arguments exist over whether the search converge to the same maxima/minima as $CD_\infty$~\cite{wu2015bias}.
+		Moreover, is the parameter searching still following the original objective function?	
+		As an initial exploration over the problem we tested some experiments on Section~\ref{sec:cd1}. 
 %	Thus,
 %	\begin{equation}
 %		\dfrac{\partial [KL(p^0 \mid \mid p^{\infty}) - KL(p^1 \mid \mid p^{\infty})]}{\partial \theta}
@@ -420,7 +422,7 @@
 	\end{algorithm}
 	\begin{figure}[hbt]
 		\centering
-		\includegraphics[width=0.5\textwidth]{img/gibbs.png}
+		\includegraphics[width=0.2\textwidth]{img/gibbs.png}
 		\caption{Gibbs sampling on RBM.}
 		\label{fig:gibbs}
 	\end{figure}	
@@ -436,7 +438,7 @@ If we look at the measured results in Figure~\ref{Fig:error}, it is not surprise
 
 	\begin{figure}[hbt]
 		\centering
-		\includegraphics[width=0.5\textwidth]{img/test.pdf}
+		\includegraphics[width=0.2\textwidth]{img/test.pdf}
 		\caption{An example of binary image in MNIST.}
 		\label{Fig:5}
 	\end{figure}
@@ -545,7 +547,7 @@ Then we continue to sample $1,000$ vectors along the Markov Chain, thus to compa
 The results can be derived from Figure~\ref{Fig:vector}.
 \begin{figure}[hbt]
 				\centering
-				\includegraphics[width=0.5\textwidth]{img/ReconError.pdf}
+				\includegraphics[width=0.3\textwidth]{img/ReconError.pdf}
 				\caption{Reconstruction error over training images. } 
 				\label{Fig:disRecon}
 \end{figure}
@@ -590,6 +592,19 @@ The results can be derived from Figure~\ref{Fig:vector}.
   }
   \label{Fig:vector}
 \end{figure}
+
+\subsection{Discussion}
+	How to validated a trained RBM is still an open question.
+	Actually, to estimate how well a trained model (a set of parameters) describes given data is not studied in this research.
+	We may use confidence level or confidence intervals as reference to assess a set of trained parameters.
+	Existing popular approach is to estimate the reconstruction error which does not describe the objective function, the data distribution.
+	
+	We have tested both the data distribution and reconstruction error in two experiments: MNIST hand written images and a normal distributed simple data set of ten bits vectors. 
+	They showed data-dependent results for both estimation.
+	\begin{itemize}
+		\item \textbf{Reconstruction error:} $CD_1$, batch $CD_1$ and $CD_k$ all shows very similar reconstruction error using MNIST data, while none of them shows a good performance with the ten bits vectors.
+		\item \textbf{Data distribution:} Only $CD_k$ restores the original data distribution with MNIST data; and all of them learn to form the normal distribution of the simple vectors.
+	\end{itemize}
 \section{Deep Belief Network}
 The Deep Belief Network (DBN) model is proposed by Hinton et al.~\cite{hinton2006fast} in 2006, in which the top RBM (top two layers) works as an associative memory where the lower layers form a belief net with directed connections, see Figure~\ref{Fig:dbn}. % \textcolor{red}{(Need to redraw)}
 The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the following:
@@ -684,8 +699,8 @@ The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the f
 	The only difference or addition is the label layer (10 neurons) locating on the top of the network, see Figure~\ref{Fig:case}.
 		\begin{figure}[hbt]
 				\centering
-				\includegraphics[width=0.5\textwidth]{img/DBN.pdf}
-				\caption{A DBN contains undirected RBM on the top as an associative memory and directed belief net on the lower layers.} 
+				\includegraphics[width=0.4\textwidth]{img/DBN.pdf}
+				\caption{The DBN architecture.} 
 				\label{Fig:case}
 		\end{figure}
 		
@@ -694,21 +709,151 @@ The main advantages of DBN comparing to multilayer perceptron (MLP) lie on the f
 	When testing, the neurons of labelling layer are changed to ``soft-max'' neurons, thus the neuron with the highest possibility to be activated presents the classification result.
 	We have experimented the same tests by training 1 to 9 epochs of all the training data.
 	For the test on the MNIST testing data, the error rate is shown in Figure~\ref{Fig:class}.
+	However, there are quite a few unrecognised testing images as well which is around 20\%.
 %	The recognition and error rates are: epoc 1 (65.5\%, 14.11\%) and epoc 40 (70.51\%, 5.47\%). 
 		\begin{figure}[hbt]
 				\centering
-				\includegraphics[width=0.5\textwidth]{img/MNISTerror.pdf}
+				\includegraphics[width=0.3\textwidth]{img/MNISTerror.pdf}
 				\caption{Classification error for training epochs of 1 to 9 testing on the MNIST testing data.} 
 				\label{Fig:class}
 		\end{figure}	
 	
-	\subsection{Discussions on Learning}
-	Discussions on mathematical explanation on difference of wake-sleep and contrastive wake-sleep algorithms.
+	\subsection{Discussion}
+		As mentioned in the beginning of the Section, a DBN is a probabilistic model whose objective function differs from the RBMs.
+		It is not a easy problem to understand, so as the reason why include finding tuning into the whole procedure.
+%	Discussions on mathematical explanation on difference of wake-sleep and contrastive wake-sleep algorithms.
 	
-	Layer-wise fine-tuning only applies learning on one direction of connections, leaving the other direction unchanged until all the above layers tuned, which results in unbalanced tuning.
+%	Layer-wise fine-tuning only applies learning on one direction of connections, leaving the other direction unchanged until all the above layers tuned, which results in unbalanced tuning.
 	
-	penalty, momentum, different learning rate, and etc.
-\section{Spiking RBM\cite{neftci2013event}}
+		What's more, practical learning is experience related to configure the parameters: such as penalty, momentum, different learning rate, and etc.
+\section{Spiking DBN}
+\subsection{Rectified Linear Units(ReLU)~\cite{nair2010rectified}}
+	Nair and Hinton~\cite{nair2010rectified} stated that ReLU preserve information about relative intensities(intensity equivarance) provided they have zero biases and are noise-free, but binary units do not.
+	This technique has dominated the best recognition performances~\textcolor{red}{ref?} in deep learning.
+	Furthermore, utilising ReLU in SNNs will simplify the network structure significantly because of the zero biases.
+	Thus in this section we firstly demonstrate on how ReLU work and perform in DBN.
+
+	The input vector in a ReLU based RBM does no longer have to be binary, so it can be a float~\textcolor{red}{fig?}.
+	Instead of using sigmoid transfer function, the ReLU is always positive and has no upper boundary.
+	There are three different ways to model ReLU~\ref{Fig:relu_tranf}:
+	\begin{figure}[hbt]
+							\centering
+							\includegraphics[width=0.4\textwidth]{img/relu.pdf}
+							\caption{The DBN architecture.} 
+							\label{Fig:relu_tranf}
+	\end{figure}
+	\begin{itemize}
+		\item sum of an infinite number of binary units with each having a bias less than the previous one~~\cite{nair2010rectified}.
+		This is one of the reason people believe the recognition performance exceeding since each ReLU represents infinite samples of sigmoid. 
+		\item the approximation of the previous form $\log(1+e_x)$.
+		\item the simplified version which is the most popular in deep learning $max(0,\sum w x)$.
+	\end{itemize}  
+\subsection{Training ReLU DBN}
+	It is exactly the same training method to make a RBM present a set of data.
+	Figure~\ref{Fig:recon_relu} shows a RBM consisting of 784 visible units and 600 hidden units reconstruct the input images for every $6,000$ updating steps.
+	There are $60,000$ training images in MNIST dataset and the batch size is 10 in this training, so each figure represents the reconstruction of each epoch during training.
+	
+	\begin{figure}[hbt]
+	  \centering
+	  \subfloat[epoc 1.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc1.png}
+	  }
+	  \subfloat[epoc 2.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc2.png}
+	  }
+	  \subfloat[epoc 3.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc3.png}
+	  }
+	  \subfloat[epoc 4.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc4.png}
+	  }
+	  \subfloat[epoc 5.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc5.png}
+	  }\\
+	  \subfloat[epoc 6.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc6.png}
+	  }
+	  \subfloat[epoc 7.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc7.png}
+	  }
+	  \subfloat[epoc 8.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc8.png}
+	  }
+	  \subfloat[epoc 9.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc9.png}
+	  }
+	  \subfloat[epoc 10.]{
+	    \includegraphics[width=0.2\textwidth]{img/b10_epoc10.png}
+	  }\\
+	  \caption{
+	  Distribution of the Gibbs samples.
+	  }
+	  \label{Fig:recon_relu}
+	\end{figure}	
+	Using the same DBN architecture of Figure~\ref{Fig:case}, with greedy training only, the ReLU network performs 92.97\% on correct recognition, 7.03\% on wrong recognition and 0\% on unrecognised.
+	The training is with 5 epochs and 10 images per batch.
+	With the same configuration, sigmoid binary units reaches 53.94\%, 21.19\% and 25.36\% respectively for correct-, wrong- and non-recognition.
+	By applying fine tuning on the network, the performance of the ReLU remains the same while the sigmoid units behaves better: 56.76\%, 17.59\% and 25.64\%.
+\subsection{Mapping to spiking DBN}
+	\subsubsection{Single LIF neuron activity}
+		\begin{itemize}
+			\item Stable current
+			\item Poissonian spike trains with same synaptic current
+			\item Linear approximation
+		\end{itemize}
+		\begin{figure}[hbt]
+			\centering
+			\includegraphics[width=0.4\textwidth]{img/20trail.pdf}
+			\caption{Out put firing rate against input current.} 
+			\label{Fig:rate_lif}
+		\end{figure}
+		
+	\subsubsection{Scaling}
+		With trained DBN using ReLU, to scale the weights to spiking DBN is the first task to concern.
+		We can see the linear transformation with Poissonian spikes only occur in a region of current input.
+		So for a single layer of RBM, we split the recurrent connections into separate connections of three layer: visible layer, hidden layer and output layer.
+		First of all, we map the sum of weighted input (the total synaptic current) into a region where the average firing rate is about 30 Hz.
+		And then with the firing rate out of the hidden layer, we do the same to the output neurons, see Figure~\ref{Fig:relu_rbm}.
+		\begin{figure}[hbt]
+					\centering
+					\includegraphics[width=0.4\textwidth]{img/drawing.pdf}
+					\caption{Out put firing rate of the output layer and the hidden layer using original DBN, spiking DBN and the linear approximation.} 
+					\label{Fig:relu_rbm}
+		\end{figure}
+	\subsubsection{Problem}
+		We see the slightly higher activity in spiking DBN than the linear approximation.
+		Thus we plot the real transfer function with the real spiking data, see~\ref{Fig:real_map}.
+		The main cause is the noisy input of many Poissonian spiking sources.
+		Thus a test is tempted to show how noise plays a role in the transformation function, Figure~\ref{Fig:noise_map}.
+			\begin{figure}[hbt]
+						\centering
+						\includegraphics[width=0.4\textwidth]{img/real_map.pdf}
+						\caption{Real LIF neuron transformation function using the MNIST single image.} 
+						\label{Fig:real_map}
+			\end{figure}
+			\begin{figure}[hbt]
+						\centering
+						\includegraphics[width=0.4\textwidth]{img/noise.pdf}
+						\caption{Noisy current influences the firing rate.} 
+						\label{Fig:noise_map}
+			\end{figure}
+		
+		In result, noise is influential in the transformation function which means the same LIF neuron performs differently with various data.
+		This data-dependent mapping will be not the same with the original DBN. 
+	\subsubsection{Mapped DBN}
+		By applying the same scaling technique for every layer of the network.
+		We have tested the recognition rate for this spiking DBN.
+		It reaches 89.85\% on correct recognition, 8.72\% on wrong classification and 1.43\% on unrecognised.
+\subsection{Discussion}
+	\begin{itemize}
+		\item The maths explaining ReLU.	
+		\item why no bias
+		\item why fine tuning does not work
+		\item data-dependent mapping
+		\item the correct way the assess the mapping both for RBM and DBN.
+	\end{itemize}
+
+\section{STDP on Spiking RBM~\cite{neftci2013event}}
 
 \begin{appendices}
 	\section{Derivation process of Equation~(\ref{equ:part})}
