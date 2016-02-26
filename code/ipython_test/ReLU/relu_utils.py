@@ -68,7 +68,6 @@ def init_label_dbn(train_data, label_data, nodes, eta=1e-3, batch_size=10, epoc=
     elif train_data.shape[0] != label_data.shape[0]:
         print 'The amount of data and label should be the same.'
         exit()
-    print epoc
     dbnet = {}
     dbnet['train_x'] = train_data
     dbnet['train_y'] = label_data
@@ -97,11 +96,15 @@ def RBM_train(para, epoc, batch_size, train_data):
 
 def greedy_train(dbnet):
     batch_size = dbnet['batch_size']
-    train_data = dbnet['train_x']
+    train_size = dbnet['train_x'].shape[0]
+    drop_out = 0.5
+    train_index = np.random.choice(train_size, train_size*drop_out, replace=False)
+    train_data = dbnet['train_x'][train_index]
+    train_label = dbnet['train_y'][train_index]
     for i in range(len(dbnet['layer'])):   #bottom up
         dbnet['layer'][i] = RBM_train(dbnet['layer'][i], dbnet['epoc'], batch_size, train_data)
         train_data = ReLU(train_data, dbnet['layer'][i]['w'])
-    train_data = np.append(train_data, dbnet['train_y'], axis=1)
+    train_data = np.append(train_data, train_label, axis=1)
     dbnet['top'] = RBM_train(dbnet['top'], dbnet['epoc'], batch_size, train_data)
     return dbnet
     

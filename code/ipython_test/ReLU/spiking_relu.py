@@ -1,10 +1,3 @@
-'''
-Typical Usage:
-number of clusters per digit = 10
-Train digit 0, cluster 0
-Simualator: Nest
-python train_mnist.py 10 0 0 nest
-'''
 import numpy as np
 import matplotlib.pyplot as plt
 import pyNN.nest as p
@@ -21,6 +14,7 @@ def plot_spikes(spikes, title):
 
 def transf(k, x0, y0, curr):
     rate = k*(curr-x0) + y0
+    rate[rate<0] = 0
     return rate
     
 def rev_transf(k, x0, y0, rate):
@@ -62,7 +56,7 @@ def estimate_kb(cell_params_lif):
     pop_source = []
     x = np.arange(0., 1.01, 0.1)
     count = 0
-    trail = 20
+    trail = 10
 
     for i in x:
         for j in range(trail): #trails for average
