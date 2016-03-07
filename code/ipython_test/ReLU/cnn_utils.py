@@ -40,6 +40,18 @@ def conv_ReLU(input_num, output_num, input_list, w_list):
         out_a[out_a<0] = 0
         out_list.append(out_a)
     return out_list
+    
+def conv_softplus(input_num, output_num, input_list, w_list):
+    out_list=[]
+    for j in range(output_num):
+        for i in range(input_num):
+            if i==0:
+                out_a = conv2d(input_list[i], w_list[i][j])
+            else:
+                out_a += conv2d(input_list[i], w_list[i][j])
+        out_a = softplus(out_a)
+        out_list.append(out_a)
+    return out_list
 
 def pool_ReLU(input_num, input_list, w_list):
     out_list=[]
@@ -49,12 +61,29 @@ def pool_ReLU(input_num, input_list, w_list):
         out_list.append(out_a)
     return out_list
 
+def pool_softplus(input_num, input_list, w_list):
+    out_list=[]
+    for i in range(input_num):
+        out_a = conv2d(input_list[i], w_list, mode='s')
+        out_a = softplus(out_a)
+        out_list.append(out_a)
+    return out_list
+
 def out_ReLU(input_list, w_list):
     out_list=[]
     input_a = np.transpose(input_list, (1, 0, 2))
     input_a = np.reshape(input_a, (input_a.shape[0], input_a.shape[1]*input_a.shape[2]))
     out_a = np.dot(input_a, np.transpose(w_list))
     out_a[out_a<0] = 0
+    out_list.append(out_a)
+    return out_list
+    
+def out_softplus(input_list, w_list):
+    out_list=[]
+    input_a = np.transpose(input_list, (1, 0, 2))
+    input_a = np.reshape(input_a, (input_a.shape[0], input_a.shape[1]*input_a.shape[2]))
+    out_a = np.dot(input_a, np.transpose(w_list))
+    out_a = softplus(out_a)
     out_list.append(out_a)
     return out_list
 
@@ -121,6 +150,26 @@ def test(W, L, tx):
     
     return a_list
     
+def test_softplus(W, L, tx):
+    a = list()
+    a.append(tx)
+    a = np.array(a)
+    a_list = list()
+    for l in range(len(L)-1):
+        input_num = a.shape[0]
+        output_num = L[l+1][0]        
+        a_list.append(a)
+        if output_num == 0: #pooling layer S
+            a = pool_softplus(input_num, a_list[l], W[l])
+        elif output_num > 0: #conv layer C
+            a = conv_softplus(input_num, output_num, a_list[l], W[l])
+        elif output_num == -1: #output layer O
+            a = out_softplus(a_list[l], W[l])
+        a = np.array(a)
+    a_list.append(a)
+    
+    return a_list
+    
 def scale_weight(W, L, tx):
     a = list()
     a.append(tx)
@@ -138,7 +187,8 @@ def scale_weight(W, L, tx):
             a, W[l] = out_ReLU_scalew(a_list[l], W[l])
         a = np.array(a)
     a_list.append(a)
-    return W, a_list[-1][0]
+    return W, a_list[-1][0] 
+
 def conv_ReLU_scalew(input_num, output_num, input_list, w_list):
     out_list=[]
     for j in range(output_num):
@@ -147,21 +197,21 @@ def conv_ReLU_scalew(input_num, output_num, input_list, w_list):
                 out_a = conv2d(input_list[i], w_list[i][j])
             else:
                 out_a += conv2d(input_list[i], w_list[i][j])
-        out_a[out_a<0] = 0
+        #out_a[out_a<0] = 0
         out_list.append(out_a)
 
     scale = get_scale(np.array(out_list))
-    print scale
     for j in range(output_num):
         w_list[:,j] *= scale
         out_list[j] = predict_rate(out_list[j], scale)
+    print scale, np.mean(out_list[0])
     return out_list, w_list
 
 def pool_ReLU_scalew(input_num, input_list, w_list):
     out_list=[]
     for i in range(input_num):
         out_a = conv2d(input_list[i], w_list, mode='s')
-        out_a[out_a<0] = 0
+        #out_a[out_a<0] = 0
         out_list.append(out_a)
     scale = get_scale(np.array(out_list))
     w_list *= scale
@@ -169,6 +219,7 @@ def pool_ReLU_scalew(input_num, input_list, w_list):
     for i in range(input_num):
         out_rate = predict_rate(out_list[i], scale)
         out_list[i] = out_rate
+    print scale, np.mean(out_rate)
     return out_list, w_list
 
 def out_ReLU_scalew(input_list, w_list):
@@ -176,25 +227,63 @@ def out_ReLU_scalew(input_list, w_list):
     input_a = np.transpose(input_list, (1, 0, 2))
     input_a = np.reshape(input_a, (input_a.shape[0], input_a.shape[1]*input_a.shape[2]))
     out_a = np.dot(input_a, np.transpose(w_list))
-    out_a[out_a<0] = 0
+    #out_a[out_a<0] = 0
     scale = get_scale(out_a)
     w_list *= scale
     out_rate = predict_rate(out_a, scale)
     out_list.append(out_rate)
+    print scale, np.mean(out_rate)
     return out_list, w_list
+    
+def softplus(x):
+    '''
+    a = 0.2
+    b = 5.0
+    y = a * b * x
+    ind = np.where( (x>-10) & (x<10))[0]
+    y[ind] = a * np.log( 1 + np.exp(b * x[ind]) )
+    y[x<=-10] = 0
+    '''
+    a = 0.2
+    b = 5.
+    sfactor = 1.#49.66
+    y = a * b * x * sfactor;
+    y[x<10] = sfactor * a * np.log(1.+ np.exp(x[x<10]*b))
+    #y = 14.*np.log(1.+np.exp(output*10.))
+    
+    return y
+
+def revers_softplus(x):
+    #y = 1./10. * np.log(np.exp(1./14.*x)-1)
+    a = 0.2
+    b = 5.
+    sfactor = 1.#49.66
+    y = 1./b * np.log(np.exp(x / a / sfactor) - 1)
+    return y
+    
 def get_scale(output):
-    x_mid = 1./10. * np.log(np.exp(1./14.*50.)-1)
+    output = softplus(output)
+    mid = 30.
+    scale = mid/np.mean(output)
+    #scale = 1
+    return scale
+'''    
+def get_scale(output):
+    max_rate = 90.
+    min_rate = softplus(0.)
+    
+    x_mid = revers_softplus(50.)
     output = output[output>0]
     if np.mean(output) > 0:
-        scale = x_mid * 1000. / np.mean(output)#(np.mean(output)+3*np.std(output))#max(curr)
+        scale = x_mid*1000. / np.mean(output)#(np.mean(output)+3*np.std(output))#max(curr)
     else:
         scale = 1
     
     return scale
-
+'''
 def predict_rate(output, scale):
-    output *= scale/1000.
-    out_rate = 14.*np.log(1.+np.exp(output*10.))
+    output *= (scale)
+    out_rate = softplus(output)
     return out_rate
 '''   
 def get_scale(output):
