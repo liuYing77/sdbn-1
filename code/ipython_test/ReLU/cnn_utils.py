@@ -13,13 +13,15 @@ def conv2d(x, w, mode='c'):
     if len(x.shape)== 2:
         input_size = np.sqrt(x.shape[1])
         for i in range(x.shape[0]):
-            xi = np.reshape(x[i],(input_size, input_size),order='F')
-            y = signal.convolve2d(xi,w,mode='valid')
+            #xi = np.reshape(x[i],(input_size, input_size),order='F')
+            xi = np.reshape(x[i],(input_size, input_size))
+            y = signal.convolve2d(xi,np.transpose(w),mode='valid')
             y = np.nan_to_num(y)
             if mode=='s':
                 w_size = w.shape[0]
                 y = y[0::w_size, 0::w_size]
-            y = np.reshape(y, (1, y.shape[0]*y.shape[0]),order='F')
+            #y = np.reshape(y, (1, y.shape[0]*y.shape[0]),order='F')
+            y = np.reshape(y, (1, y.shape[0]*y.shape[0]))
             if i==0:
                 y_list = y
             else:
@@ -130,7 +132,7 @@ def readmat(matfile):
     lsize.append([-1, getOutLayer(cnn).shape[0]])
     return W, lsize
     
-def test(W, L, tx):
+def test(W, L, tx, predict=False):
     a = list()
     a.append(tx)
     a = np.array(a)
@@ -146,6 +148,8 @@ def test(W, L, tx):
         elif output_num == -1: #output layer O
             a = out_ReLU(a_list[l], W[l])
         a = np.array(a)
+        if predict:
+            a = predict_relu_rate(a, 1.)
     a_list.append(a)
     
     return a_list
@@ -200,11 +204,13 @@ def conv_ReLU_scalew(input_num, output_num, input_list, w_list):
         #out_a[out_a<0] = 0
         out_list.append(out_a)
 
-    scale = get_scale(np.array(out_list))
+    scale = get_relu_scale(np.array(out_list))
     for j in range(output_num):
         w_list[:,j] *= scale
-        out_list[j] = predict_rate(out_list[j], scale)
-    print scale, np.mean(out_list[0])
+        out_list[j] = predict_relu_rate(out_list[j], scale)
+    print 'scale: ', scale
+    if np.mean(out_list[0])>0:
+        print np.mean(out_list[0][out_list[0]>0])
     return out_list, w_list
 
 def pool_ReLU_scalew(input_num, input_list, w_list):
@@ -213,13 +219,15 @@ def pool_ReLU_scalew(input_num, input_list, w_list):
         out_a = conv2d(input_list[i], w_list, mode='s')
         #out_a[out_a<0] = 0
         out_list.append(out_a)
-    scale = get_scale(np.array(out_list))
+    scale = get_relu_scale(np.array(out_list))
     w_list *= scale
     
     for i in range(input_num):
-        out_rate = predict_rate(out_list[i], scale)
+        out_rate = predict_relu_rate(out_list[i], scale)
         out_list[i] = out_rate
-    print scale, np.mean(out_rate)
+    print 'scale: ', scale
+    if np.mean(out_rate)>0:
+        print np.mean(out_rate[out_rate>0])
     return out_list, w_list
 
 def out_ReLU_scalew(input_list, w_list):
@@ -227,12 +235,14 @@ def out_ReLU_scalew(input_list, w_list):
     input_a = np.transpose(input_list, (1, 0, 2))
     input_a = np.reshape(input_a, (input_a.shape[0], input_a.shape[1]*input_a.shape[2]))
     out_a = np.dot(input_a, np.transpose(w_list))
-    #out_a[out_a<0] = 0
-    scale = get_scale(out_a)
+    out_a[out_a<0] = 0
+    scale = get_relu_scale(out_a)
     w_list *= scale
-    out_rate = predict_rate(out_a, scale)
+    out_rate = predict_relu_rate(out_a, scale)
     out_list.append(out_rate)
-    print scale, np.mean(out_rate)
+    print 'scale: ', scale
+    if np.mean(out_rate)>0:
+        print np.mean(out_rate[out_rate>0])
     return out_list, w_list
     
 def softplus(x):
@@ -249,6 +259,8 @@ def softplus(x):
     sfactor = 1.#49.66
     y = a * b * x * sfactor;
     y[x<10] = sfactor * a * np.log(1.+ np.exp(x[x<10]*b))
+
+    y = y - np.log(2)
     #y = 14.*np.log(1.+np.exp(output*10.))
     
     return y
@@ -261,32 +273,40 @@ def revers_softplus(x):
     y = 1./b * np.log(np.exp(x / a / sfactor) - 1)
     return y
     
-def get_scale(output):
-    output = softplus(output)
-    mid = 30.
+def get_scale(in_a):
+    output = softplus(in_a)
+    mid = 50.
     scale = mid/np.mean(output)
     #scale = 1
     return scale
-'''    
-def get_scale(output):
-    max_rate = 90.
-    min_rate = softplus(0.)
-    
-    x_mid = revers_softplus(50.)
+def predict_rate(in_a, scale):
+    output = in_a * scale
+    out_rate = softplus(output)
+    return out_rate
+
+
+
+def get_relu_scale(in_a):
+    k = 0.149
+    output = k * in_a 
     output = output[output>0]
-    if np.mean(output) > 0:
-        scale = x_mid*1000. / np.mean(output)#(np.mean(output)+3*np.std(output))#max(curr)
+    y_mid = np.mean(output)
+    y_pre = 50.
+    if y_mid > 0:
+        scale = y_pre / y_mid #(np.mean(output)+3*np.std(output))#max(curr)
     else:
         scale = 1
     
     return scale
+    
+def predict_relu_rate(in_a, scale):
+    k = 0.149
+    output = in_a * scale * k
+    output[output<0] = 0 
+    return output
 '''
-def predict_rate(output, scale):
-    output *= (scale)
-    out_rate = softplus(output)
-    return out_rate
-'''   
-def get_scale(output):
+
+def get_relu_scale(output):
     
     k = 167.6
     x0 = 0.1
@@ -304,7 +324,7 @@ def get_scale(output):
     
     return scale
 
-def predict_rate(output, scale):
+def predict_relu_rate(output, scale):
     
     k = 167.6
     x0 = 0.1
@@ -316,4 +336,4 @@ def predict_rate(output, scale):
     #out_rate = 14.*np.log(1.+np.exp(output*10.))
     out_rate = sr.transf(k, x0, y0, output)
     return out_rate
-'''
+'''  

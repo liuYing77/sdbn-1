@@ -7,7 +7,7 @@ import random
 import mnist_utils as mu
 import os.path
 import sys
-
+#USAGE: spiking_dbn.py scaled_weight b10_epoc5
 
 w_listf = sys.argv[1]
 dbn_f = sys.argv[2]
@@ -39,7 +39,6 @@ else:
     scaled_w['x0'] = x0
     scaled_w['y0'] = y0
     alg.save_dict(scaled_w, w_listf)
-test_x = dbnet['test_x']
 
 num_test = 10
 random.seed(0)
@@ -68,6 +67,6 @@ for offset in range(0, test_x.shape[0], num_test):
     index = np.where(spike_count.max(axis=0)==0)[0]
     result_list[offset+index, 1] = -1
     #print spike_count, np.argmax(spike_count, axis=0), dbnet['test_y'][:10]   
-    np.save('result_list', result_list)
+    np.save('result_list1', result_list)
 
 
