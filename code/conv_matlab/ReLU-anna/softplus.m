@@ -14,8 +14,8 @@ function y = softplus( x, a, b, bias )
             bias = false;
     end
     
-    a = 1;
-    b = 1;
+    a = 1;%3;
+    b = 1;%1/3;
     y = a * b * x;
     ind = find(x<10 & x>-10);
     y(ind) = a * log( 1 + exp(b * x(ind)) );

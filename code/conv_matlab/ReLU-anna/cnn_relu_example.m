@@ -2,7 +2,7 @@ function [cnn, er] = cnn_relu_example( trans )
 %CNN_RELU_EXAMPLE Summary of this function goes here
 %   Detailed explanation goes here
     load mnist_uint8;
-
+    
     train_x = double(reshape(train_x',28,28,60000))/255;
     test_x = double(reshape(test_x',28,28,10000))/255;
     train_y = double(train_y');
@@ -26,16 +26,16 @@ function [cnn, er] = cnn_relu_example( trans )
 
     cnn = cnn_relu_setup(cnn, train_x, train_y, trans);
     if strcmp(trans, 'softplus') || strcmp(trans, 'noisy_softplus') 
-%         opts.alpha = [1 1 1 1 0.1] * 0.05;
+        opts.alpha = [1 1 1 1 0.1] * 0.05;
 %         opts.alpha = [1 1 1 1 1] * 0.06;
-        opts.alpha = [1 1 1 1 1] * 0.001;
+%         opts.alpha = [1 1 1 1 1] * 0.005;
     elseif strcmp(trans, 'relu')
         opts.alpha = [1 1 1 1 1];
     elseif strcmp(trans, 'sigm')
         opts.alpha = [1 1 1 1 1];
     end
     opts.batchsize = 50;
-    opts.numepochs = 1;
+    opts.numepochs = 5;
     
     cnn = cnn_relu_train(cnn, train_x, train_y, opts, trans, bias);
     [er, bad] = cnn_relu_test(cnn, test_x, test_y, trans, bias);
